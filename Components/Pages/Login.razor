@@ -1,0 +1,122 @@
+@page "/login"
+@inject UserService UserService
+@inject NavigationManager Nav
+
+<div class="auth-page">
+    <div class="auth-card">
+        <h4 class="text-center mb-4">Login</h4>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText type="email" @bind-Value="email" class="form-control" placeholder="Enter your email" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <InputText type="password" @bind-Value="password" class="form-control" placeholder="Enter your password" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="text-danger mb-3">@error</div>
+        }
+
+        <button class="btn btn-primary w-100 mb-3" @onclick="LoginUser">Login</button>
+
+        <div class="text-center text-muted">
+            Don't have an account? <a href="/register">Register</a>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Full page dark theme layout */
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+    background: linear-gradient(135deg, #0f1820, #1b2430);
+}
+
+/* Card container */
+.auth-card {
+    background-color: #1b2430;
+    padding: 2.5rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    color: #fff;
+}
+
+/* Titles */
+.auth-card h2 {
+    font-weight: 700;
+    color: #2b6be6;
+}
+.auth-card h4 {
+    color: #fff;
+    font-weight: 500;
+}
+
+/* Inputs */
+.auth-card .form-control {
+    background-color: #0f1820;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.2s;
+}
+.auth-card .form-control:focus {
+    border-color: #2b6be6;
+    box-shadow: 0 0 5px rgba(43,107,230,0.5);
+    outline: none;
+}
+
+/* Button */
+.auth-card .btn-primary {
+    background-color: #2b6be6;
+    border-color: #2b6be6;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.6rem;
+    transition: all 0.2s;
+}
+.auth-card .btn-primary:hover {
+    background-color: #1d54c4;
+    border-color: #1d54c4;
+}
+
+/* Links */
+.auth-card a {
+    color: #2b6be6;
+    font-weight: 500;
+}
+.auth-card a:hover {
+    text-decoration: underline;
+}
+</style>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string error = "";
+
+    private async Task LoginUser()
+{
+    try
+    {
+        var success = await UserService.LoginAsync(email, password);
+        if (success)
+            Nav.NavigateTo("/");
+        else
+            error = "Invalid email or password!";
+    }
+    catch (Exception ex)
+    {
+        error = $"Login failed: {ex.Message}";
+    }
+}
+}

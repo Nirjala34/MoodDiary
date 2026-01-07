@@ -1,0 +1,137 @@
+@page "/settings"
+@using JournalApp.Models
+@using System.IO
+@using Microsoft.Maui.Storage
+@inject JournalApp.Services.IJournalStorageService Storage
+@inject IJSRuntime JS
+
+<h3 style="margin-top: 30px; margin-bottom: 20px; font-size: 2rem; font-weight: 900; letter-spacing: 0.8px;">
+    Settings
+</h3>
+
+
+<div class="card p-3">
+    <div class="note-warning mb-3 p-3">
+        <strong>Note:</strong> Clearing your browser or app data will delete all journal entries. Always keep backups of important entries.
+    </div>
+
+    <div class="mb-3">
+        <button class="btn btn-outline-primary" @onclick="Export">Export Entries (.json)</button>
+    </div>
+
+    <hr />
+    <h5>Storage</h5>
+    <div class="mb-2">
+        @if (Storage is JournalApp.Services.SqliteJournalStorageService sqlite)
+        {
+            <div>Using SQLite DB: <code>@sqlite.GetDatabasePath()</code></div>
+        }
+    </div>
+
+    <hr />
+    <h5>Custom Tags</h5>
+    <div class="d-flex gap-2 align-items-center mb-2">
+        <input class="form-control form-control-sm" placeholder="Add a new tag" @bind="newTag" />
+        <button class="btn btn-sm btn-primary" @onclick="AddTag">+ Add</button>
+    </div>
+    <div class="mb-2">
+        @if (customTags == null || !customTags.Any())
+        {
+            <div class="text-muted">No custom tags yet. Add your first custom tag above.</div>
+        }
+        else
+        {
+            @foreach (var t in customTags)
+            {
+                <span class="tag-chip">@t <button class="btn-close btn-close-white btn-sm ms-2" @onclick="() => RemoveTag(t)"></button></span>
+            }
+        }
+    </div>
+
+    <hr />
+    <h5>Custom Moods</h5>
+    <div class="d-flex gap-2 align-items-center mb-2">
+        <input class="form-control form-control-sm" placeholder="Add a new mood" @bind="newMood" />
+        <button class="btn btn-sm btn-primary" @onclick="AddMood">+ Add</button>
+    </div>
+    <div class="mb-2">
+        @if (customMoods == null || !customMoods.Any())
+        {
+            <div class="text-muted">No custom moods yet. Add your first custom mood above.</div>
+        }
+        else
+        {
+            @foreach (var m in customMoods)
+            {
+                <button class="mood-button selected ms-1 mb-1" @onclick="() => RemoveMood(m)">@m &nbsp;<span class="small">✕</span></button>
+            }
+        }
+    </div>
+
+    <hr />
+    <div class="mb-3">
+        <button class="btn btn-danger" @onclick="ClearAll">Clear All Entries</button>
+    </div>
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-info">@message</div>
+    }
+</div>
+
+@code {
+    private string? message;
+
+    private List<string>? customTags;
+    private List<string>? customMoods;
+    private string newTag = string.Empty;
+    private string newMood = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customTags = await Storage.GetCustomTagsAsync();
+        customMoods = await Storage.GetCustomMoodsAsync();
+    }
+
+    private async Task Export()
+    {
+        var path = Path.Combine(FileSystem.AppDataDirectory, $"journal-export-{DateTime.Now:yyyyMMddHHmmss}.json");
+        await Storage.ExportAsync(path);
+        message = $"Exported to: {path}";
+    }
+
+
+    private async Task AddTag()
+    {
+        if (string.IsNullOrWhiteSpace(newTag)) return;
+        await Storage.AddCustomTagAsync(newTag.Trim());
+        newTag = string.Empty;
+        customTags = await Storage.GetCustomTagsAsync();
+    }
+
+    private async Task RemoveTag(string t)
+    {
+        await Storage.RemoveCustomTagAsync(t);
+        customTags = await Storage.GetCustomTagsAsync();
+    }
+
+    private async Task AddMood()
+    {
+        if (string.IsNullOrWhiteSpace(newMood)) return;
+        await Storage.AddCustomMoodAsync(newMood.Trim());
+        newMood = string.Empty;
+        customMoods = await Storage.GetCustomMoodsAsync();
+    }
+
+    private async Task RemoveMood(string m)
+    {
+        await Storage.RemoveCustomMoodAsync(m);
+        customMoods = await Storage.GetCustomMoodsAsync();
+    }
+
+    private async Task ClearAll()
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "Clear all journal entries? This cannot be undone.")) return;
+        await Storage.ClearAllAsync();
+        message = "All entries cleared.";
+    }
+}

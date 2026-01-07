@@ -1,0 +1,264 @@
+@page "/dashboard"
+@using JournalApp.Models
+@inject JournalApp.Services.IJournalStorageService Storage
+@inject NavigationManager Nav
+
+
+
+    <div class="dashboard">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="m-0"> Your Mood Dashboard 🌿</h3>
+                <div class="text-muted"> Monitor your daily mood entries, reflections, and emotional trends.📖</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" @onclick='() => Nav.NavigateTo("/add-entry")'>+ New Entry</button>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <!-- Total Entries -->
+            <div class="col-12 col-md-3">
+                <div class="card p-3">
+                    <h6 class="mb-1">Total Entries</h6>
+                    <div class="display-6 fw-bold">@((entries?.Count ?? 0))</div>
+                </div>
+            </div>
+
+            <!-- Current Streak -->
+            <div class="col-12 col-md-3">
+                <div class="card p-3">
+                    <h6 class="mb-1">Current Streak</h6>
+                    <div class="display-6 fw-bold">@currentStreak</div>
+                    <div class="small text-muted">days in a row</div>
+                </div>
+            </div>
+
+            <!-- Mood Overview -->
+            <div class="col-12 col-md-6">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-2">Mood Overview</h6>
+                    @if (entries == null || !entries.Any())
+                    {
+                        <div class="text-muted small">No data yet.</div>
+                    }
+                    else
+                    {
+                        var moodCounts = entries
+                            .Where(e => !string.IsNullOrEmpty(e.PrimaryMood))
+                            .GroupBy(e => e.PrimaryMood)
+                            .OrderByDescending(g => g.Count());
+
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var m in moodCounts)
+                            {
+                                <li class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <span class="mood-emoji">@GetMoodEmoji(m.Key)</span>
+                                        <span class="mood-text">@m.Key</span>
+                                    </div>
+                                    <div class="text-muted small">(@m.Count())</div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+
+            <!-- Recent Tags -->
+            <div class="col-12 mt-3">
+                <div class="card p-3">
+                    <h6 class="mb-2">Recent Tags</h6>
+                    @if (entries == null || !entries.SelectMany(e => e.Tags ?? new List<string>()).Any())
+                    {
+                        <div class="text-muted small">No tags yet.</div>
+                    }
+                    else
+                    {
+                        var tags = entries
+                            .SelectMany(e => e.Tags ?? new List<string>())
+                            .GroupBy(t => t)
+                            .OrderByDescending(g => g.Count())
+                            .Take(10);
+
+                        <div>
+                            @foreach (var t in tags)
+                            {
+                                <span class="badge me-1 mb-1" style="background-color: var(--tag-bg); color:white;">#@t.Key</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Last Entry -->
+            <div class="col-12 mt-3">
+                <div class="card p-3">
+                    <h6 class="mb-2">Last Entry</h6>
+                    @if (entries == null || !entries.Any())
+                    {
+                        <div class="text-muted small">—</div>
+                    }
+                    else
+                    {
+                        var last = entries.OrderByDescending(e => e.CreatedAt).First();
+                        <div><strong>@last.Title</strong></div>
+                        <div class="text-muted small">
+                            @last.CreatedAt.ToString("D")
+                            • <span class="mood-emoji">@GetMoodEmoji(last.PrimaryMood)</span>
+                            @last.PrimaryMood
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Entries -->
+        <div class="card p-4 mt-3">
+            @if (entries == null || !entries.Any())
+            {
+                <div class="text-center py-5">
+                    <h5>No entries yet</h5>
+                    <div class="text-muted mb-3">
+                        Your personal journey is waiting — add your first thought today ✨
+                    </div>
+                    <button class="btn btn-primary" @onclick='() => Nav.NavigateTo("/add-entry")'>
+                        Create First Entry
+                    </button>
+                </div>
+            }
+            else
+            {
+                <h5 class="mb-3">Recent Entries</h5>
+                <ul class="list-unstyled">
+                    @foreach (var e in entries.OrderByDescending(e => e.CreatedAt).Take(5))
+                    {
+                        <li class="mb-2">
+                            <a class="text-decoration-none" href="/entry/@e.Id">
+                                <strong>@e.Title</strong>
+                            </a>
+                            <div class="text-muted small">
+                                @e.CreatedAt.ToString("D")
+                                • <span class="mood-emoji">@GetMoodEmoji(e.PrimaryMood)</span>
+                                @e.PrimaryMood
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+
+<style>
+:root {
+    --bg-color: #0f1820;
+    --card-bg: #1a1f2b;
+    --card-border: #333;
+    --text-color: #fff;
+    --muted-color: #999;
+    --tag-bg: #2b6be6;
+}
+
+.light-theme {
+    --bg-color: #f5f5f5;
+    --card-bg: #fff;
+    --card-border: #ccc;
+    --text-color: #111;
+    --muted-color: #666;
+    --tag-bg: #2b6be6;
+}
+
+.dashboard-container {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.text-muted {
+    color: var(--muted-color) !important;
+}
+
+.mood-emoji {
+    font-size: 1.2rem;
+    margin-right: 4px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+.mood-text {
+    font-weight: 500;
+}
+
+.badge {
+    transition: all 0.3s ease;
+}
+</style>
+
+@code {
+    private List<JournalEntry> entries = new();
+    private int currentStreak = 0;
+    private bool isDarkTheme = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
+        currentStreak = CalculateCurrentStreak(entries);
+    }
+
+    private string GetMoodEmoji(string mood) => mood switch
+    {
+        "Happy" => "😊",
+        "Sad" => "😢",
+        "Anxious" => "😟",
+        "Angry" => "😠",
+        "Relaxed" => "😌",
+        "Excited" => "🤩",
+        "Neutral" => "😐",
+        "Content" => "🙂",
+        _ => "🙂"
+    };
+
+    private int CalculateCurrentStreak(List<JournalEntry> entries)
+    {
+        if (entries == null || !entries.Any()) return 0;
+
+        var dates = entries
+            .Select(e => e.CreatedAt.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+
+        int streak = 0;
+        DateTime currentDate = DateTime.Today;
+
+        foreach (var date in dates)
+        {
+            if (date == currentDate)
+            {
+                streak++;
+                currentDate = currentDate.AddDays(-1);
+            }
+            else if (date < currentDate)
+            {
+                // break streak on missing day
+                break;
+            }
+        }
+
+        return streak;
+    }
+
+    private void ToggleTheme()
+    {
+        isDarkTheme = !isDarkTheme;
+    }
+}

@@ -1,0 +1,200 @@
+@page "/calendar"
+@using JournalApp.Models
+@inject JournalApp.Services.IJournalStorageService Storage
+@inject NavigationManager Nav
+
+<h3 style="margin-top:30px;margin-bottom:20px;font-size:2rem;font-weight:900;letter-spacing:0.8px;">
+    Calendar
+</h3>
+
+@if (entries == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-sm btn-outline-secondary" @onclick="PrevMonth">← Prev</button>
+            <h5 class="m-0">@currentMonth.ToString("MMMM yyyy")</h5>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="NextMonth">Next →</button>
+        </div>
+
+        <div class="calendar-grid">
+            @foreach (var day in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
+            {
+                <div class="calendar-header">@day</div>
+            }
+
+            @foreach (var date in datesInMonth)
+            {
+                var has = entriesByDate.ContainsKey(date.Date);
+                var entryCount = has ? entriesByDate[date.Date].Count : 0;
+                var isCurrentMonth = date.Month == currentMonth.Month;
+
+                <div class="calendar-day @(has ? "has-entry" : "") @(!isCurrentMonth ? "other-month" : "")"
+                     @onclick="() => OnDateClick(date)">
+                    <div class="day-number">@date.Day</div>
+
+                    @if (has)
+                    {
+                        var dayEntries = entriesByDate[date.Date];
+                        var mood = dayEntries.First().PrimaryMood;
+
+                        <div class="entry-emoji">@GetMoodEmoji(mood)</div>
+                        <div class="entry-count">@entryCount</div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<style>
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+.calendar-header {
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    color: #888;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px;
+    background: #0f1820;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 80px;
+}
+
+.calendar-day:hover {
+    background: #1a2534;
+    border-color: #2b6be6;
+}
+
+.calendar-day.has-entry {
+    background: #0d2847;
+    border-color: #2b6be6;
+    box-shadow: inset 0 0 8px rgba(43, 107, 230, 0.1);
+}
+
+.calendar-day.other-month {
+    opacity: 0.3;
+    background: #0a0f18;
+}
+
+.day-number {
+    font-weight: bold;
+    color: #e0e0e0;
+    font-size: 1.1rem;
+}
+
+.entry-emoji {
+    font-size: 1.4rem;
+    margin-top: 4px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+.entry-count {
+    font-size: 0.65rem;
+    color: #2b6be6;
+    margin-top: 2px;
+    font-weight: 500;
+}
+</style>
+
+@code {
+    private List<JournalEntry> entries = new();
+    private DateTime currentMonth = DateTime.Now;
+    private List<DateTime> datesInMonth = new();
+    private Dictionary<DateTime, List<JournalEntry>> entriesByDate = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMonth();
+    }
+
+    private async Task LoadMonth()
+    {
+        entries = (await Storage.GetEntriesAsync()) ?? new List<JournalEntry>();
+
+        var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+        var daysInMonth = DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
+        var startDayOfWeek = (int)firstDay.DayOfWeek;
+
+        datesInMonth = new List<DateTime>();
+
+        // Previous month trailing days
+        for (int i = startDayOfWeek; i > 0; i--)
+        {
+            datesInMonth.Add(firstDay.AddDays(-i));
+        }
+
+        // Current month
+        for (int d = 1; d <= daysInMonth; d++)
+        {
+            datesInMonth.Add(new DateTime(currentMonth.Year, currentMonth.Month, d));
+        }
+
+        // Next month trailing days to fill last week
+        while (datesInMonth.Count % 7 != 0)
+        {
+            datesInMonth.Add(datesInMonth.Last().AddDays(1));
+        }
+
+        entriesByDate = entries
+            .GroupBy(e => e.CreatedAt.Date)
+            .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    private async Task PrevMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        await LoadMonth();
+    }
+
+    private async Task NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        await LoadMonth();
+    }
+
+    private void OnDateClick(DateTime date)
+    {
+        if (entriesByDate.ContainsKey(date.Date))
+        {
+            // Navigate to first entry for this day
+            var entryId = entriesByDate[date.Date].First().Id;
+            Nav.NavigateTo($"/entry/{entryId}");
+        }
+    }
+
+    private string GetMoodEmoji(string mood) => mood switch
+    {
+        "Happy" => "😊",
+        "Sad" => "😢",
+        "Anxious" => "😰",
+        "Angry" => "😠",
+        "Relaxed" => "😌",
+        "Excited" => "🤩",
+        "Neutral" => "😐",
+        "Content" => "🙂",
+        _ => ""
+    };
+}

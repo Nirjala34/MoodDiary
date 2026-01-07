@@ -1,0 +1,119 @@
+﻿@page "/"
+@using JournalApp.Models
+@inject JournalApp.Services.IJournalStorageService Storage
+@inject NavigationManager Nav
+
+
+
+    <div class="dashboard container">
+    <!-- Welcome Section -->
+    <div class="welcome-section d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="welcome-title">🍂 Welcome to MoodDiary!</h1>
+            <p class="welcome-subtitle">
+                Keep a record of your thoughts, moods, and progress every day 📝
+            </p>
+            <p class="welcome-note">
+                🌅 Start your day with intention.  
+                ✨ Reflect each evening.  
+                📝 Watch your mood journey unfold.
+            </p>
+        </div>
+        <div>
+            
+        </div>
+    </div>
+
+    
+
+    <!-- Quick Links / Actions -->
+    <div class="quick-actions row g-3">
+        <div class="col-md-4">
+            <div class="action-card" @onclick='() => Nav.NavigateTo("/add-entry")'>
+                ✏️ Add New Entry
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="action-card" @onclick='() => Nav.NavigateTo("/view-entries")'>
+                📖 View Past Entries
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="action-card" @onclick='() => Nav.NavigateTo("/analytics")'>
+                📊 View Analytics
+            </div>
+        </div>
+    </div>
+</div>
+ 
+
+<style>
+.dashboard {
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.welcome-section {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+.welcome-note {
+    font-size: 0.95rem;
+    margin-top: 10px;
+    color: #fff3e0; 
+    line-height: 1.5;
+}
+.welcome-title {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.welcome-subtitle {
+    font-size: 1rem;
+    margin-top: 5px;
+    color: #ffffff;
+}
+
+
+.p {rgb(255, 255, 255)
+    color: #e0e0e0;
+}
+.stats-cards .stat-card {
+    border-radius: 12px;
+    background: #fff;
+    color: #333;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stats-cards .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.stats-cards h2 {
+    font-size: 1.5rem;
+    margin: 10px 0 0 0;
+}
+
+.quick-actions .action-card {
+    background: #2575fc;
+    color: #fff;
+    text-align: center;
+    padding: 25px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.quick-actions .action-card:hover {
+    transform: translateY(-5px);
+    background: #6a11cb;
+}
+</style>

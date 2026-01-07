@@ -1,0 +1,259 @@
+@page "/edit/{Id:guid}"
+@using JournalApp.Models
+@inject JournalApp.Services.IJournalStorageService Storage
+@inject NavigationManager Nav
+@using Microsoft.AspNetCore.Components.Web
+
+<h3>Edit Entry</h3>
+
+@if (entry == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card p-4 entry-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="m-0">Edit Entry</h4>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="TogglePreview">
+                    @(showPreview ? "Hide" : "Show") Preview
+                </button>
+            </div>
+        </div>
+
+        <!-- DATE -->
+        <div class="mb-2">
+            <label>Date</label>
+            <InputDate @bind-Value="entry.CreatedAt" class="form-control" />
+        </div>
+
+        <!-- TITLE -->
+        <div class="mb-2">
+            <label>Title</label>
+            <InputText @bind-Value="entry.Title" class="form-control" />
+        </div>
+
+        <!-- CONTENT -->
+        <div class="mb-2">
+            <label>Content (Markdown)</label>
+            <textarea @bind="entry.Content" class="form-control" rows="8"></textarea>
+        </div>
+
+        <!-- OPTIONAL NOTE -->
+        <div class="mb-2">
+            <label>📝 Optional Note</label>
+            <textarea class="form-control"
+                      rows="4"
+                      placeholder="Any extra thoughts (optional)..."
+                      @bind="entry.OptionalNote">
+            </textarea>
+            <small class="text-muted">You can add extra notes here. Optional.</small>
+        </div>
+
+        <!-- PRIMARY MOOD -->
+        <div class="mb-2">
+            <label>Primary Mood</label>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var m in moods)
+                {
+                    <button type="button"
+                            class="mood-button @(entry.PrimaryMood == m.Key ? "selected" : "")"
+                            @onclick="() => SetPrimaryMood(m.Key)">
+                        @m.Value
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- SECONDARY MOODS -->
+        <div class="mb-3">
+            <label>Secondary Moods</label>
+            <div class="mood-grid secondary-grid">
+                @foreach (var m in moods)
+                {
+                    var isSelected = entry.SecondaryMoods?.Contains(m.Key) ?? false;
+                    <button type="button"
+                            class="mood-button secondary @(isSelected ? "selected" : "")"
+                            @onclick="() => ToggleSecondaryMood(m.Key)">
+                        @m.Value
+                    </button>
+                }
+            </div>
+            <div class="small text-muted">Select up to 2 secondary moods.</div>
+        </div>
+
+        <!-- MOOD COMMENT -->
+        <div class="mb-2">
+            <label>💭 Mood Comment (optional)</label>
+            <InputText @bind-Value="entry.MoodComment" class="form-control" />
+        </div>
+
+        <!-- TAGS -->
+        <div class="mb-2">
+            <label>Tags</label>
+            <div class="d-flex gap-2 align-items-center">
+                <input placeholder="Add tag"
+                       @bind="tagInput"
+                       class="form-control form-control-sm"
+                       @onkeydown="OnTagInputKeyDown" />
+                <button class="btn btn-sm btn-outline-primary" @onclick="AddTag">Add</button>
+            </div>
+
+            <div class="mt-2">
+                @foreach (var t in entry.Tags ?? new List<string>())
+                {
+                    <span class="tag-chip">
+                        @t
+                        <button type="button" class="btn-close btn-close-white btn-sm ms-2" aria-label="Remove"
+                                @onclick="() => RemoveTag(t)">
+                        </button>
+                    </span>
+                }
+            </div>
+
+            <div class="mt-2">
+                <small class="text-muted">Suggestions:</small>
+                <div class="mt-1">
+                    @foreach (var s in tagSuggestions)
+                    {
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary ms-1 mb-1"
+                                @onclick="() => AddSuggestedTag(s)">
+                            @s
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- PREVIEW -->
+        @if (showPreview)
+        {
+            <div class="card mt-3 p-3 preview-box" @key="entry.Content">
+                @((new MarkupString(MarkdownToHtml(entry.Content))))
+                @if(!string.IsNullOrWhiteSpace(entry.OptionalNote))
+                {
+                    <hr />
+                    <strong>Optional Notes:</strong>
+                    <p>@entry.OptionalNote</p>
+                }
+            </div>
+        }
+
+        <!-- ACTIONS -->
+        <div class="mt-4 actions">
+            <button class="btn btn-primary" @onclick="Save">Save Changes</button>
+            <button class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private JournalEntry? entry;
+    private string tagInput = string.Empty;
+    private bool showPreview = false;
+
+    private Dictionary<string, string> moods = new()
+    {
+        { "Happy", "😊 Happy" },
+        { "Sad", "😢 Sad" },
+        { "Anxious", "😰 Anxious" },
+        { "Angry", "😠 Angry" },
+        { "Relaxed", "😌 Relaxed" },
+        { "Excited", "🤩 Excited" },
+        { "Neutral", "😐 Neutral" },
+        { "Content", "🙂 Content" }
+    };
+
+    private List<string> tagSuggestions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        entry = await Storage.GetEntryAsync(Id);
+        if (entry != null)
+        {
+            entry.Tags ??= new List<string>();
+            entry.SecondaryMoods ??= new List<string>();
+        }
+
+        var custom = await Storage.GetCustomMoodsAsync();
+        foreach (var m in custom)
+        {
+            if (!moods.ContainsKey(m)) moods[m] = m;
+        }
+
+        tagSuggestions = await Storage.GetCustomTagsAsync();
+    }
+
+    private void SetPrimaryMood(string mood)
+    {
+        if (entry != null) entry.PrimaryMood = mood;
+    }
+
+    private void ToggleSecondaryMood(string mood)
+    {
+        if (entry == null) return;
+        entry.SecondaryMoods ??= new List<string>();
+        if (entry.SecondaryMoods.Contains(mood)) entry.SecondaryMoods.Remove(mood);
+        else if (entry.SecondaryMoods.Count < 2) entry.SecondaryMoods.Add(mood);
+    }
+
+    private void AddTag()
+    {
+        if (string.IsNullOrWhiteSpace(tagInput) || entry == null) return;
+        var t = tagInput.Trim();
+        entry.Tags ??= new List<string>();
+        if (!entry.Tags.Contains(t)) entry.Tags.Add(t);
+        tagInput = string.Empty;
+    }
+
+    private void RemoveTag(string t)
+    {
+        entry?.Tags?.Remove(t);
+    }
+
+    private void AddSuggestedTag(string s)
+    {
+        entry ??= new JournalEntry();
+        entry.Tags ??= new List<string>();
+        if (!entry.Tags.Contains(s)) entry.Tags.Add(s);
+    }
+
+    private void OnTagInputKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") AddTag();
+    }
+
+    private void TogglePreview()
+    {
+        showPreview = !showPreview;
+    }
+
+    private string MarkdownToHtml(string md)
+    {
+        if (string.IsNullOrWhiteSpace(md)) return string.Empty;
+        var html = System.Net.WebUtility.HtmlEncode(md);
+        html = html.Replace("\n", "<br />");
+        html = System.Text.RegularExpressions.Regex.Replace(html, "\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
+        html = System.Text.RegularExpressions.Regex.Replace(html, "\\*(.+?)\\*", "<em>$1</em>");
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\[(.+?)\]\((.+?)\)", "<a href=\"$2\" target=\"_blank\">$1</a>");
+        return html;
+    }
+
+    private async Task Save()
+    {
+        if (entry == null) return;
+        await Storage.UpdateEntryAsync(entry);
+        Nav.NavigateTo($"/entry/{entry.Id}");
+    }
+
+    private void Cancel()
+    {
+        if (entry != null) Nav.NavigateTo($"/entry/{entry.Id}");
+        else Nav.NavigateTo("/view-entries");
+    }
+}

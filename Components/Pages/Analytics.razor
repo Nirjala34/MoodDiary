@@ -1,0 +1,297 @@
+@page "/analytics"
+@using JournalApp.Models
+@inject JournalApp.Services.IJournalStorageService Storage
+
+<h3 style="margin:20px 0;font-weight:800;">📊 Analytics & Insights</h3>
+
+<!-- FILTERS -->
+<div style="display:flex;gap:10px;margin-bottom:20px;align-items:center;">
+    <input type="date" @bind="startDate"
+           style="padding:5px 10px;border-radius:5px;border:1px solid #ccc;height:38px;" />
+    <input type="date" @bind="endDate"
+           style="padding:5px 10px;border-radius:5px;border:1px solid #ccc;height:38px;" />
+    <button class="btn btn-primary" @onclick="ApplyFilter"
+            style="height:38px;padding:0 15px;">Apply</button>
+    <button class="btn btn-secondary" @onclick="ResetFilter"
+            style="height:38px;padding:0 15px;">Reset</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div>🔥 Current Streak</div>
+        <div class="stat-value">@currentStreak</div>
+    </div>
+    <div class="stat-card">
+        <div>🏆 Longest Streak</div>
+        <div class="stat-value">@longestStreak</div>
+    </div>
+    <div class="stat-card">
+        <div>📄 Total Entries</div>
+        <div class="stat-value">@totalEntries</div>
+    </div>
+</div>
+
+<!-- ANALYTICS GRID -->
+<div class="analytics-grid">
+
+    <!-- Mood Distribution -->
+    <div class="analytics-card">
+        <h5>😊 Mood Distribution</h5>
+        @if (!filteredEntries.Any())
+        {
+            <div class="muted">No data</div>
+        }
+        else
+        {
+            <ul>
+                @foreach (var g in filteredEntries
+                    .Where(e => !string.IsNullOrEmpty(e.PrimaryMood))
+                    .GroupBy(e => e.PrimaryMood))
+                {
+                    <li>@g.Key — @g.Count()</li>
+                }
+            </ul>
+        }
+    </div>
+
+    <!-- Most Frequent Mood -->
+    <div class="analytics-card center">
+        <h5>⭐ Most Frequent Mood</h5>
+        <div style="font-size:2.5rem;">
+            @(mostFrequentMood ?? "—")
+        </div>
+    </div>
+
+    <!-- Most Used Tags -->
+    <div class="analytics-card">
+        <h5>🏷 Most Used Tags</h5>
+        @if (mostUsedTags.Any())
+        {
+            @foreach (var tag in mostUsedTags)
+            {
+                <span class="tag">@tag</span>
+            }
+        }
+        else
+        {
+            <div class="muted">No tags</div>
+        }
+    </div>
+
+    <!-- Writing Stats -->
+    <div class="analytics-card center">
+        <h5>✍ Writing Stats</h5>
+        <div class="stat-value">@averageWords</div>
+        <div class="muted">Avg words / entry</div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="analytics-card full-width">
+        <h5>📂 Category Breakdown</h5>
+        @if (categoryBreakdown.Any())
+        {
+            @foreach (var c in categoryBreakdown)
+            {
+                <span class="chip">@c.Key : @c.Value</span>
+            }
+        }
+        else
+        {
+            <div class="muted">No data</div>
+        }
+    </div>
+
+</div>
+
+<style>
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background:#0f1820;
+    padding:16px;
+    border-radius:8px;
+    text-align:center;
+    border:1px solid #2b6be6;
+}
+
+.stat-value {
+    font-size:2rem;
+    font-weight:800;
+}
+
+.analytics-card {
+    background:#0f1820;
+    padding:16px;
+    border-radius:8px;
+    border:1px solid #333;
+}
+
+.analytics-card.center {
+    text-align:center;
+}
+
+.analytics-card.full-width {
+    grid-column: span 2;
+}
+
+.muted {
+    color:#999;
+}
+
+.tag {
+    display:inline-block;
+    background:#2b6be6;
+    color:white;
+    padding:4px 10px;
+    border-radius:20px;
+    margin:4px;
+    font-size:0.8rem;
+}
+
+.chip {
+    display:inline-block;
+    padding:6px 12px;
+    background:#ff4f70;
+    color:white;
+    border-radius:20px;
+    margin:4px;
+}
+</style>
+
+@code {
+    private List<JournalEntry> entries = new();
+    private List<JournalEntry> filteredEntries = new();
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    private int currentStreak;
+    private int longestStreak;
+    private int totalEntries;
+    private string? mostFrequentMood;
+    private List<string> mostUsedTags = new();
+    private int averageWords;
+    private Dictionary<string, int> categoryBreakdown = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var filtered = entries.AsEnumerable();
+
+        if (startDate.HasValue)
+            filtered = filtered.Where(e => e.CreatedAt.Date >= startDate.Value.Date);
+
+        if (endDate.HasValue)
+            filtered = filtered.Where(e => e.CreatedAt.Date <= endDate.Value.Date);
+
+        filteredEntries = filtered.ToList();
+
+        ComputeStreaks(entries);
+        ComputeFilteredStats(filteredEntries);
+    }
+
+    private void ResetFilter()
+    {
+        startDate = null;
+        endDate = null;
+        ApplyFilter();
+    }
+
+    private void ComputeStreaks(List<JournalEntry> data)
+    {
+        if (data == null || !data.Any())
+        {
+            currentStreak = 0;
+            longestStreak = 0;
+            totalEntries = 0;
+            return;
+        }
+
+        var dates = data
+            .Select(e => e.CreatedAt.Date)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
+
+        totalEntries = data.Count;
+
+        currentStreak = 0;
+        for (int i = dates.Count - 1; i >= 0; i--)
+        {
+            if (dates[i] == DateTime.Today.AddDays(-(dates.Count - 1 - i)))
+                currentStreak++;
+            else
+                break;
+        }
+
+        longestStreak = 1;
+        int temp = 1;
+
+        for (int i = 1; i < dates.Count; i++)
+        {
+            if ((dates[i] - dates[i - 1]).Days == 1)
+                temp++;
+            else
+                temp = 1;
+
+            if (temp > longestStreak)
+                longestStreak = temp;
+        }
+    }
+
+    private void ComputeFilteredStats(List<JournalEntry> data)
+    {
+        if (data == null || !data.Any())
+        {
+            mostFrequentMood = null;
+            mostUsedTags = new();
+            averageWords = 0;
+            categoryBreakdown = new();
+            return;
+        }
+
+        mostFrequentMood = data
+            .Where(e => !string.IsNullOrEmpty(e.PrimaryMood))
+            .GroupBy(e => e.PrimaryMood)
+            .OrderByDescending(g => g.Count())
+            .Select(g => g.Key)
+            .FirstOrDefault();
+
+        mostUsedTags = data
+            .SelectMany(e => e.Tags ?? new List<string>())
+            .GroupBy(t => t)
+            .OrderByDescending(g => g.Count())
+            .Take(6)
+            .Select(g => g.Key)
+            .ToList();
+
+        var wordCounts = data
+            .Where(e => !string.IsNullOrWhiteSpace(e.Content))
+            .Select(e => e.Content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length)
+            .ToList();
+
+        averageWords = wordCounts.Any() ? (int)wordCounts.Average() : 0;
+
+        categoryBreakdown = data
+            .Where(e => !string.IsNullOrEmpty(e.PrimaryMood))
+            .GroupBy(e => e.PrimaryMood)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
+}

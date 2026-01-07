@@ -1,0 +1,937 @@
+﻿
+/* -----------------------------
+   Base Styles & Body
+----------------------------- */
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(160deg, #0d1117, #1c1f2b);
+    margin: 0;
+    padding: 0;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.dashboard {
+    margin-top: 40px;   
+    padding: 1.5rem;    /* inner spacing */
+}
+.dashboard h3 {
+    margin-top: 0;       
+    margin-bottom: 0.5rem; 
+    font-size: 2rem;     
+}
+.dashboard .text-muted {
+    margin-top: 0.25rem; 
+}
+
+/* Page container */
+.app-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* -----------------------------
+   Headers & Typography
+----------------------------- */
+h1, h2, h3 {
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    margin-bottom: 1rem;
+}
+
+h4, h5, h6 {
+    font-weight: 700;
+    color: #b0b0b0;
+}
+/* -----------------------------
+   Analytics Page Styles
+----------------------------- */
+.analytics-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Analytics Cards (Streaks, Entries, Avg Word Count) */
+.analytics-card {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 20px;
+    background: #1e1f29;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.analytics-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+}
+
+.analytics-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1.8rem;
+    color: #ffd93d;
+}
+
+.analytics-card h6 {
+    margin: 0;
+    color: #cfd8dc;
+}
+
+/* Mood Distribution Bars */
+.mood-bar-wrapper {
+    margin-bottom: 0.8rem;
+}
+
+.mood-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #cfd8dc;
+}
+
+.mood-bar {
+    height: 20px;
+    border-radius: 8px;
+    background-color: #2c2d3c;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.mood-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.4s ease;
+}
+
+/* Most Frequent Mood */
+.most-frequent-mood {
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+}
+
+.most-frequent-mood-name {
+    font-weight: 700;
+    color: #ffd93d;
+}
+
+/* Tags & Category Pills */
+.tag-pill {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    border-radius: 25px;
+    background: #667eea;
+    color: #fff;
+    font-weight: 600;
+    margin: 0.2rem 0.5rem 0.2rem 0;
+}
+
+/* Average Word Count */
+.avg-word-count {
+    font-size: 1.5rem;
+    color: #28a745;
+    margin-bottom: 0.2rem;
+}
+
+/* Category Breakdown Pills */
+.category-pill {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    border-radius: 20px;
+    background-color: #ff6b81;
+    color: #fff;
+    font-weight: 600;
+    margin: 0.2rem 0.5rem 0.2rem 0;
+}
+
+/* Date Filters */
+.analytics-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.analytics-filter input[type="date"],
+.analytics-filter button {
+    border-radius: 20px;
+    padding: 0.6rem 1.2rem;
+    border: 2px solid #2c2d3c;
+    background-color: #1e1f29;
+    color: #e0e0e0;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.analytics-filter button.btn-primary {
+    background: #ff4f70;
+    border-color: #ff4f70;
+    color: #fff;
+}
+
+.analytics-filter button.btn-secondary {
+    background: #2be7e0;
+    border-color: #2be7e0;
+    color: #0d1117;
+}
+
+.analytics-filter input[type="date"]:focus,
+.analytics-filter button:focus {
+    outline: none;
+    border-color: #ff4f70;
+    box-shadow: 0 0 8px #ff4f70;
+}
+
+/* Loading Spinner */
+.analytics-loading {
+    text-align: center;
+    font-size: 1rem;
+    color: #cfd8dc;
+    margin-top: 2rem;
+}
+
+/* -----------------------------
+   Responsive
+----------------------------- */
+@media (max-width: 768px) {
+    .analytics-card {
+        padding: 1rem;
+    }
+    .mood-bar {
+        height: 16px;
+    }
+    .tag-pill, .category-pill {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.8rem;
+    }
+    .analytics-filter {
+        flex-direction: column;
+    }
+}
+
+/* -----------------------------
+   Card Layout (Different Structure)
+----------------------------- */
+.card {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+    background: #161822;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+}
+
+/* Card header for stats */
+.card-header {
+    grid-column: 1 / -1;
+    font-size: 1.25rem;
+    font-weight: 800;
+    border-bottom: 1px solid #2a2c3b;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+/* -----------------------------
+   Buttons
+----------------------------- */
+.btn {
+    border-radius: 20px;
+    padding: 0.6rem 1.6rem;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: #ff4f70;
+    color: #fff;
+    border: 2px solid #ff4f70;
+}
+
+.btn-primary:hover {
+    background: transparent;
+    color: #ff4f70;
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background: #2be7e0;
+    color: #0d1117;
+    border: 2px solid #2be7e0;
+}
+
+.btn-secondary:hover {
+    background: transparent;
+    color: #2be7e0;
+    transform: scale(1.05);
+}
+
+/* -----------------------------
+   Mood Selector (Grid Layout)
+----------------------------- */
+.mood-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.8rem;
+    justify-items: center;
+}
+
+.mood-button {
+    width: 100%;
+    padding: 0.6rem 0;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+/* Hover effect */
+.mood-button:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* Selected state */
+.mood-button.selected {
+    box-shadow: none;           
+    transform: none;            
+    border: 2px solid #ffa500;  
+    background-color: #ffa500;  
+    color: #1c1c1c;            
+}
+/* ---------------- GRID ---------------- */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+/* ---------------- COMMON CARD ---------------- */
+.stat-card,
+.analytics-card {
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    transition: background 0.3s, color 0.3s, border 0.3s;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+/* ---------------- DARK THEME ---------------- */
+.dark-theme .stat-card,
+.dark-theme .analytics-card {
+    background-color: #0f1820;
+    color: #eaeaea;
+    border: 1px solid #2b6be6;
+}
+
+.dark-theme .muted {
+    color: #999;
+}
+
+/* ---------------- LIGHT THEME ---------------- */
+.light-theme .stat-card,
+.light-theme .analytics-card {
+    background-color: #ffffff;
+    color: #111111;
+    border: 1px solid #d0d0d0;
+}
+
+.light-theme .muted {
+    color: #666;
+}
+
+/* ---------------- TAGS ---------------- */
+.tag {
+    display: inline-block;
+    background: #2b6be6;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin: 4px;
+    font-size: 0.8rem;
+}
+
+.chip {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #ff4f70;
+    color: white;
+    border-radius: 20px;
+    margin: 4px;
+}
+
+/* ---------------- LAYOUT HELPERS ---------------- */
+.analytics-card.center {
+    text-align: center;
+}
+
+.analytics-card.full-width {
+    grid-column: span 2;
+}
+/* ================= CALENDAR GRID ================= */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+/* ================= HEADERS ================= */
+.calendar-header {
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+/* ================= DAY CELL BASE ================= */
+.calendar-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    padding: 8px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 80px;
+}
+
+.day-number {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.entry-emoji {
+    font-size: 1.4rem;
+    margin-top: 4px;
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+.entry-count {
+    font-size: 0.65rem;
+    margin-top: 2px;
+    font-weight: 600;
+}
+
+/* ================= DARK THEME ================= */
+.dark-theme .card {
+    background: #0f1820;
+    border: 1px solid #222;
+}
+
+.dark-theme .calendar-header {
+    color: #888;
+}
+
+.dark-theme .calendar-day {
+    background: #0f1820;
+    border: 1px solid #333;
+    color: #e0e0e0;
+}
+
+.dark-theme .calendar-day:hover {
+    background: #1a2534;
+    border-color: #2b6be6;
+}
+
+.dark-theme .calendar-day.has-entry {
+    background: #0d2847;
+    border-color: #2b6be6;
+    box-shadow: inset 0 0 8px rgba(43, 107, 230, 0.15);
+}
+
+.dark-theme .calendar-day.other-month {
+    opacity: 0.3;
+    background: #0a0f18;
+}
+
+.dark-theme .entry-count {
+    color: #2b6be6;
+}
+
+/* ================= LIGHT THEME ================= */
+.light-theme .card {
+    background: #ffffff;
+    border: 1px solid #ddd;
+}
+
+.light-theme .calendar-header {
+    color: #666;
+}
+
+.light-theme .calendar-day {
+    background: #ffffff;
+    border: 1px solid #d0d0d0;
+    color: #111;
+}
+
+.light-theme .calendar-day:hover {
+    background: #f2f6ff;
+    border-color: #2b6be6;
+}
+
+.light-theme .calendar-day.has-entry {
+    background: #eaf2ff;
+    border-color: #2b6be6;
+}
+
+.light-theme .calendar-day.other-month {
+    opacity: 0.35;
+    background: #f5f5f5;
+}
+
+.light-theme .entry-count {
+    color: #2b6be6;
+}
+/* ================= BASE ================= */
+.card {
+    border-radius: 10px;
+}
+
+/* ================= NOTE WARNING ================= */
+.note-warning {
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* ================= TAG CHIP ================= */
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin: 4px;
+    font-weight: 600;
+}
+
+/* ================= MOOD BUTTON ================= */
+.mood-button {
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mood-button:hover {
+    transform: scale(1.03);
+}
+
+/* ================= DARK THEME ================= */
+.dark-theme .card {
+    background: #0f1820;
+    border: 1px solid #222;
+    color: #e0e0e0;
+}
+
+.dark-theme h5 {
+    color: #ffffff;
+}
+
+.dark-theme .note-warning {
+    background: #2a1d00;
+    border-left: 4px solid #ff9800;
+    color: #ffd180;
+}
+
+.dark-theme .form-control {
+    background: #111827;
+    border: 1px solid #333;
+    color: #e0e0e0;
+}
+
+.dark-theme .form-control::placeholder {
+    color: #888;
+}
+
+.dark-theme .tag-chip {
+    background: #2b6be6;
+    color: #ffffff;
+}
+
+.dark-theme .btn-close {
+    filter: invert(1);
+}
+
+.dark-theme .mood-button.selected {
+    background: #ff4f70;
+    color: white;
+}
+
+.dark-theme .alert-info {
+    background: #0d2847;
+    border: 1px solid #2b6be6;
+    color: #cfe3ff;
+}
+
+/* ================= LIGHT THEME ================= */
+.light-theme .card {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    color: #111;
+}
+
+.light-theme h5 {
+    color: #222;
+}
+
+.light-theme .note-warning {
+    background: #fff7e6;
+    border-left: 4px solid #ff9800;
+    color: #5a3b00;
+}
+
+.light-theme .form-control {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    color: #111;
+}
+
+.light-theme .form-control::placeholder {
+    color: #777;
+}
+
+.light-theme .tag-chip {
+    background: #eaf2ff;
+    color: #1b3f91;
+}
+
+.light-theme .mood-button.selected {
+    background: #ff4f70;
+    color: white;
+}
+
+.light-theme .alert-info {
+    background: #eef5ff;
+    border: 1px solid #bcd6ff;
+    color: #1b3f91;
+}
+/* ================= AUTH PAGE LAYOUT ================= */
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+}
+
+/* ================= AUTH CARD ================= */
+.auth-card {
+    padding: 2.5rem;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+/* ================= TITLES ================= */
+.auth-card h4 {
+    font-weight: 700;
+    text-align: center;
+}
+
+/* ================= INPUTS ================= */
+.auth-card .form-control {
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.2s ease;
+}
+
+/* ================= BUTTON ================= */
+.auth-card .btn-primary {
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.6rem;
+}
+
+/* ================= LINKS ================= */
+.auth-card a {
+    font-weight: 500;
+    text-decoration: none;
+}
+.auth-card a:hover {
+    text-decoration: underline;
+}
+
+/* ================================================= */
+/* ================= DARK THEME ==================== */
+/* ================================================= */
+.dark-theme .auth-page {
+    background: linear-gradient(135deg, #0f1820, #1b2430);
+}
+
+.dark-theme .auth-card {
+    background: #1b2430;
+    color: #ffffff;
+}
+
+.dark-theme .auth-card h4 {
+    color: #ffffff;
+}
+
+.dark-theme .form-label {
+    color: #cfd8ff;
+}
+
+.dark-theme .form-control {
+    background: #0f1820;
+    color: #ffffff;
+    border: 1px solid #333;
+}
+
+.dark-theme .form-control::placeholder {
+    color: #888;
+}
+
+.dark-theme .form-control:focus {
+    border-color: #2b6be6;
+    box-shadow: 0 0 6px rgba(43,107,230,0.6);
+}
+
+.dark-theme .btn-primary {
+    background: #2b6be6;
+    border-color: #2b6be6;
+}
+
+.dark-theme .btn-primary:hover {
+    background: #1d54c4;
+    border-color: #1d54c4;
+}
+
+.dark-theme .text-muted {
+    color: #9aa4b2 !important;
+}
+
+.dark-theme a {
+    color: #7aa2ff;
+}
+
+.dark-theme .text-danger {
+    color: #ff6b6b;
+}
+
+/* ================================================= */
+/* ================= LIGHT THEME =================== */
+/* ================================================= */
+.light-theme .auth-page {
+    background: linear-gradient(135deg, #f4f7fb, #e9eef6);
+}
+
+.light-theme .auth-card {
+    background: #ffffff;
+    color: #111;
+    border: 1px solid #ddd;
+}
+
+.light-theme .auth-card h4 {
+    color: #111;
+}
+
+.light-theme .form-label {
+    color: #333;
+}
+
+.light-theme .form-control {
+    background: #ffffff;
+    color: #111;
+    border: 1px solid #ccc;
+}
+
+.light-theme .form-control::placeholder {
+    color: #777;
+}
+
+.light-theme .form-control:focus {
+    border-color: #2b6be6;
+    box-shadow: 0 0 6px rgba(43,107,230,0.3);
+}
+
+.light-theme .btn-primary {
+    background: #2b6be6;
+    border-color: #2b6be6;
+}
+
+.light-theme .btn-primary:hover {
+    background: #1d54c4;
+    border-color: #1d54c4;
+}
+
+.light-theme .text-muted {
+    color: #666 !important;
+}
+
+.light-theme a {
+    color: #2b6be6;
+}
+
+.light-theme .text-danger {
+    color: #d32f2f;
+}
+/* Brand title base */
+.brand-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+/* DARK THEME */
+.dark-theme .brand-title {
+    color: #ffffff;
+}
+
+/* LIGHT THEME */
+.light-theme .brand-title {
+    color: #ffffff;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+
+input[type="date"] {
+    background-color: #111;
+    color: white;
+    border: 1px solid #444;
+}
+/* Unique mood colors */
+.mood-Happy { background: #ffd93d; color: #2d2d2d; }
+.mood-Sad { background: #5d5fe2; color: #fff; }
+.mood-Anxious { background: #ff6b6b; color: #fff; }
+.mood-Relaxed { background: #4cd137; color: #2d2d2d; }
+.mood-Excited { background: #ffa502; color: #2d2d2d; }
+.mood-Neutral { background: #aaa69d; color: #2d2d2d; }
+
+/* -----------------------------
+   Tags (Vertical Pill Layout)
+----------------------------- */
+.tag-chip {
+    display: block;
+    margin-bottom: 0.5rem;
+    padding: 0.45rem 1rem;
+    border-radius: 25px;
+    background: #252734;
+    color: #58a6ff;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.25s ease;
+}
+
+.tag-chip:hover {
+    background: #58a6ff;
+    color: #161822;
+    transform: translateX(4px);
+}
+
+/* -----------------------------
+   Entry List
+----------------------------- */
+.entry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.entry-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e1f29;
+    padding: 0.8rem 1.2rem;
+    border-radius: 18px;
+    margin-bottom: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.entry-list li:hover {
+    background: #2c2d3c;
+    transform: scale(1.02);
+}
+
+/* -----------------------------
+   Dashboard Stats
+----------------------------- */
+.stat-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    border-radius: 20px;
+    background: #252734;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    font-weight: 700;
+}
+
+/* Stat count */
+.stat-count {
+    font-size: 1.8rem;
+    color: #ffd93d;
+}
+
+/* -----------------------------
+   Forms
+----------------------------- */
+input.form-control, textarea.form-control, select.form-select {
+    width: 100%;
+    padding: 0.55rem 1rem;
+    border-radius: 20px;
+    border: 2px solid #2c2d3c;
+    background: #1e1f29;
+    color: #e0e0e0;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+input.form-control:focus, textarea.form-control:focus, select.form-select:focus {
+    border-color: #ff4f70;
+    box-shadow: 0 0 8px #ff4f70;
+    outline: none;
+}
+
+/* -----------------------------
+   Responsive
+----------------------------- */
+@media (max-width: 768px) {
+    .card { grid-template-columns: 1fr; padding: 1.5rem; }
+    .mood-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
+    .btn { width: 100%; margin-bottom: 0.6rem; }
+}

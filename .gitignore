@@ -1,0 +1,17 @@
+# Ignore build output
+bin/
+obj/
+
+# Visual Studio / editor files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# WebView2 cache (MAUI-specific)
+JournalApp.exe.WebView2/
+
+# OS files
+.DS_Store
+Thumbs.db

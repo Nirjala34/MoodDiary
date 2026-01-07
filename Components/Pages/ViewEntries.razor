@@ -1,0 +1,75 @@
+@page "/view-entries"
+@using JournalApp.Models
+@inject JournalApp.Services.IJournalStorageService Storage
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<h3 style="margin-top: 30px; margin-bottom: 20px; font-size: 2rem; font-weight: 900; letter-spacing: 0.8px;">
+    View Journal Entries
+</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="CreateNew">New Entry</button>
+</div>
+
+@if (entries.Count == 0)
+{
+    <div class="card p-4 text-center">
+        <h5>No journal entries yet</h5>
+        <p class="text-muted">
+            Start by adding your first journal entry — you can track moods, tags, and more.
+        </p>
+        <button class="btn btn-primary" @onclick="CreateNew">Create New Entry</button>
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var e in entries)
+        {
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong>@(e.Title ?? "Untitled")</strong>
+                        <div class="small text-muted">
+                            @e.CreatedAt.ToString("D") • @(e.PrimaryMood ?? "No mood")
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-link" @onclick="() => View(e.Id)">View</button>
+                        <button class="btn btn-sm btn-link" @onclick="() => Edit(e.Id)">Edit</button>
+                        <button class="btn btn-sm btn-link text-danger" @onclick="() => Delete(e.Id)">Delete</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<JournalEntry> entries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
+    }
+
+    private void CreateNew() => Nav.NavigateTo("/add-entry");
+    private void View(Guid id) => Nav.NavigateTo($"/entry/{id}");
+    private void Edit(Guid id) => Nav.NavigateTo($"/edit/{id}");
+
+    private async Task Delete(Guid id)
+    {
+        if (!await JSConfirm("Delete this entry?")) return;
+
+        await Storage.DeleteEntryAsync(id);
+
+        entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
+        StateHasChanged();
+    }
+
+    private async Task<bool> JSConfirm(string message)
+    {
+        return await JS.InvokeAsync<bool>("confirm", message);
+    }
+}
