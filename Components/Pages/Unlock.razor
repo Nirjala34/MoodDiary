@@ -1,0 +1,48 @@
+@page "/unlock"
+@inject PinService PinService
+@inject NavigationManager Nav
+
+<div class="auth-page">
+    <div class="auth-card">
+        <h4>🔐 Enter PIN</h4>
+
+        <input type="password"
+               class="form-control mb-3"
+               placeholder="Enter your PIN"
+               @bind="pin" />
+
+        <button class="btn btn-primary w-100" @onclick="UnlockApp">
+            Unlock
+        </button>
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="text-danger mt-2">@error</div>
+        }
+    </div>
+</div>
+
+@code {
+    private string pin = "";
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!await PinService.HasPinAsync())
+        {
+            Nav.NavigateTo("/");
+        }
+    }
+
+    private async Task UnlockApp()
+    {
+        if (await PinService.ValidatePinAsync(pin))
+        {
+            Nav.NavigateTo("/");
+        }
+        else
+        {
+            error = "Incorrect PIN";
+        }
+    }
+}

@@ -3,262 +3,262 @@
 @inject JournalApp.Services.IJournalStorageService Storage
 @inject NavigationManager Nav
 
+<div class="dashboard">
 
-
-    <div class="dashboard">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h3 class="m-0"> Your Mood Dashboard 🌿</h3>
-                <div class="text-muted"> Monitor your daily mood entries, reflections, and emotional trends.📖</div>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary" @onclick='() => Nav.NavigateTo("/add-entry")'>+ New Entry</button>
-            </div>
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="m-0">Your Mood Dashboard 🌿</h3>
+            <div class="text-muted">Monitor your daily mood entries, reflections, and emotional trends.📖</div>
         </div>
-
-        <div class="row mb-3">
-            <!-- Total Entries -->
-            <div class="col-12 col-md-3">
-                <div class="card p-3">
-                    <h6 class="mb-1">Total Entries</h6>
-                    <div class="display-6 fw-bold">@((entries?.Count ?? 0))</div>
-                </div>
-            </div>
-
-            <!-- Current Streak -->
-            <div class="col-12 col-md-3">
-                <div class="card p-3">
-                    <h6 class="mb-1">Current Streak</h6>
-                    <div class="display-6 fw-bold">@currentStreak</div>
-                    <div class="small text-muted">days in a row</div>
-                </div>
-            </div>
-
-            <!-- Mood Overview -->
-            <div class="col-12 col-md-6">
-                <div class="card p-3 h-100">
-                    <h6 class="mb-2">Mood Overview</h6>
-                    @if (entries == null || !entries.Any())
-                    {
-                        <div class="text-muted small">No data yet.</div>
-                    }
-                    else
-                    {
-                        var moodCounts = entries
-                            .Where(e => !string.IsNullOrEmpty(e.PrimaryMood))
-                            .GroupBy(e => e.PrimaryMood)
-                            .OrderByDescending(g => g.Count());
-
-                        <ul class="list-unstyled mb-0">
-                            @foreach (var m in moodCounts)
-                            {
-                                <li class="d-flex justify-content-between align-items-center mb-1">
-                                    <div>
-                                        <span class="mood-emoji">@GetMoodEmoji(m.Key)</span>
-                                        <span class="mood-text">@m.Key</span>
-                                    </div>
-                                    <div class="text-muted small">(@m.Count())</div>
-                                </li>
-                            }
-                        </ul>
-                    }
-                </div>
-            </div>
-
-            <!-- Recent Tags -->
-            <div class="col-12 mt-3">
-                <div class="card p-3">
-                    <h6 class="mb-2">Recent Tags</h6>
-                    @if (entries == null || !entries.SelectMany(e => e.Tags ?? new List<string>()).Any())
-                    {
-                        <div class="text-muted small">No tags yet.</div>
-                    }
-                    else
-                    {
-                        var tags = entries
-                            .SelectMany(e => e.Tags ?? new List<string>())
-                            .GroupBy(t => t)
-                            .OrderByDescending(g => g.Count())
-                            .Take(10);
-
-                        <div>
-                            @foreach (var t in tags)
-                            {
-                                <span class="badge me-1 mb-1" style="background-color: var(--tag-bg); color:white;">#@t.Key</span>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Last Entry -->
-            <div class="col-12 mt-3">
-                <div class="card p-3">
-                    <h6 class="mb-2">Last Entry</h6>
-                    @if (entries == null || !entries.Any())
-                    {
-                        <div class="text-muted small">—</div>
-                    }
-                    else
-                    {
-                        var last = entries.OrderByDescending(e => e.CreatedAt).First();
-                        <div><strong>@last.Title</strong></div>
-                        <div class="text-muted small">
-                            @last.CreatedAt.ToString("D")
-                            • <span class="mood-emoji">@GetMoodEmoji(last.PrimaryMood)</span>
-                            @last.PrimaryMood
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Entries -->
-        <div class="card p-4 mt-3">
-            @if (entries == null || !entries.Any())
-            {
-                <div class="text-center py-5">
-                    <h5>No entries yet</h5>
-                    <div class="text-muted mb-3">
-                        Your personal journey is waiting — add your first thought today ✨
-                    </div>
-                    <button class="btn btn-primary" @onclick='() => Nav.NavigateTo("/add-entry")'>
-                        Create First Entry
-                    </button>
-                </div>
-            }
-            else
-            {
-                <h5 class="mb-3">Recent Entries</h5>
-                <ul class="list-unstyled">
-                    @foreach (var e in entries.OrderByDescending(e => e.CreatedAt).Take(5))
-                    {
-                        <li class="mb-2">
-                            <a class="text-decoration-none" href="/entry/@e.Id">
-                                <strong>@e.Title</strong>
-                            </a>
-                            <div class="text-muted small">
-                                @e.CreatedAt.ToString("D")
-                                • <span class="mood-emoji">@GetMoodEmoji(e.PrimaryMood)</span>
-                                @e.PrimaryMood
-                            </div>
-                        </li>
-                    }
-                </ul>
-            }
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick='() => Nav.NavigateTo("/add-entry")'>+ New Entry</button>
+            <button class="btn btn-outline-secondary" @onclick='() => Nav.NavigateTo("/view-entries")'>All Entries</button>
         </div>
     </div>
 
+    <!-- TOP STATS -->
+    <div class="row mb-3">
+        <div class="col-6 col-md-2">
+            <div class="card p-3 text-center">
+                <h6>Total Entries</h6>
+                <div class="display-6 fw-bold">@((entries?.Count ?? 0))</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <div class="card p-3 text-center">
+                <h6>Current Streak</h6>
+                <div class="display-6 fw-bold">@currentStreak</div>
+                <div class="small text-muted">days in a row</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <div class="card p-3 text-center">
+                <h6>Avg Words</h6>
+                <div class="display-6 fw-bold">@averageWordCount</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-2">
+            <div class="card p-3 text-center">
+                <h6>Most Frequent Mood</h6>
+                <div class="display-6 fw-bold">@mostFrequentMoodEmoji</div>
+                <div class="small">@mostFrequentMood</div>
+            </div>
+        </div>
+
+        <!-- LOCKED ENTRIES ADDED -->
+        <div class="col-6 col-md-2">
+            <div class="card p-3 text-center">
+                <h6>Locked Entries 🔒</h6>
+                <div class="display-6 fw-bold text-warning">@lockedEntriesCount</div>
+                <div class="small text-muted">protected</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOOD TREND -->
+    <div class="card p-3 mb-3">
+        <h6>Mood Trend (Last 7 Days)</h6>
+        @if (!moodTrend.Any())
+        {
+            <div class="text-muted small">No recent entries.</div>
+        }
+        else
+        {
+            <ul class="list-unstyled d-flex gap-3 mb-0">
+                @foreach (var mt in moodTrend)
+                {
+                    <li class="text-center">
+                        <div>@mt.Date.ToString("MMM dd")</div>
+                        <div class="mood-emoji display-6">@GetMoodEmoji(mt.Mood)</div>
+                        <div class="small">@mt.Mood</div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    <!-- LAST ENTRY NOTES -->
+    <div class="card p-3 mb-3">
+        <h6>Last Entry Notes</h6>
+        @if (lastEntry == null)
+        {
+            <div class="text-muted small">No entries yet.</div>
+        }
+        else
+        {
+            <div><strong>@lastEntry.Title</strong> - @lastEntry.CreatedAt.ToString("D")</div>
+            @if(!string.IsNullOrWhiteSpace(lastEntry.OptionalNote))
+            {
+                <div class="text-muted small mt-1">📝 @lastEntry.OptionalNote</div>
+            }
+        }
+    </div>
+
+    <!-- RECENT TAGS -->
+    <div class="card p-3 mb-3">
+        <h6>Recent Tags</h6>
+        @if (entries == null || !entries.SelectMany(e => e.Tags ?? new List<string>()).Any())
+        {
+            <div class="text-muted small">No tags yet.</div>
+        }
+        else
+        {
+            var tags = entries
+                .SelectMany(e => e.Tags ?? new List<string>())
+                .GroupBy(t => t)
+                .OrderByDescending(g => g.Count())
+                .Take(10);
+
+            <div>
+                @foreach (var t in tags)
+                {
+                    <span class="badge me-1 mb-1" style="background-color: var(--tag-bg); color:white;">
+                        #@t.Key
+                    </span>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- RECENT ENTRIES -->
+    <div class="card p-4 mt-3">
+        <h5>Recent Entries</h5>
+        @if (entries == null || !entries.Any())
+        {
+            <div class="text-center py-5 text-muted">No entries yet.</div>
+        }
+        else
+        {
+            <ul class="list-unstyled">
+                @foreach (var e in entries.OrderByDescending(e => e.CreatedAt).Take(5))
+                {
+                    <li class="mb-3">
+                        <div class="fw-bold">@e.Title</div>
+                        <div class="text-muted small">@e.CreatedAt.ToString("D")</div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
 
 <style>
-:root {
-    --bg-color: #0f1820;
-    --card-bg: #1a1f2b;
-    --card-border: #333;
-    --text-color: #fff;
-    --muted-color: #999;
-    --tag-bg: #2b6be6;
-}
-
-.light-theme {
-    --bg-color: #f5f5f5;
-    --card-bg: #fff;
-    --card-border: #ccc;
-    --text-color: #111;
-    --muted-color: #666;
-    --tag-bg: #2b6be6;
-}
-
-.dashboard-container {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    min-height: 100vh;
-    padding: 1rem;
-    transition: all 0.3s ease;
-}
-
-.card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    color: var(--text-color);
-    transition: all 0.3s ease;
-}
-
-.text-muted {
-    color: var(--muted-color) !important;
-}
-
-.mood-emoji {
-    font-size: 1.2rem;
-    margin-right: 4px;
-    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
-}
-
-.mood-text {
-    font-weight: 500;
-}
-
-.badge {
-    transition: all 0.3s ease;
-}
+.dashboard { padding:1rem; background-color: var(--bg-color); color: var(--text-color);}
+.card { background-color: var(--card-bg); border:1px solid var(--card-border); padding:1rem; margin-bottom:1rem;}
+.text-muted { color: var(--muted-color);}
+.mood-emoji { font-size:1.5rem; display:block; }
+.badge { transition:all 0.3s ease; }
+:root { --bg-color:#0f1820; --card-bg:#1a1f2b; --card-border:#333; --text-color:#fff; --muted-color:#999; --tag-bg:#2b6be6; }
 </style>
 
 @code {
     private List<JournalEntry> entries = new();
     private int currentStreak = 0;
-    private bool isDarkTheme = true;
+    private double averageWordCount = 0;
+    private string mostFrequentMood = "";
+    private string mostFrequentMoodEmoji = "";
+    private JournalEntry? lastEntry;
+    private List<(DateTime Date, string Mood)> moodTrend = new();
+
+    //  NEW
+    private int lockedEntriesCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
         entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
-        currentStreak = CalculateCurrentStreak(entries);
-    }
+        entries = entries.OrderByDescending(e => e.CreatedAt).ToList();
 
-    private string GetMoodEmoji(string mood) => mood switch
-    {
-        "Happy" => "😊",
-        "Sad" => "😢",
-        "Anxious" => "😟",
-        "Angry" => "😠",
-        "Relaxed" => "😌",
-        "Excited" => "🤩",
-        "Neutral" => "😐",
-        "Content" => "🙂",
-        _ => "🙂"
-    };
+        lastEntry = entries.FirstOrDefault();
+        currentStreak = CalculateCurrentStreak(entries);
+        averageWordCount = CalculateAverageWords(entries);
+        mostFrequentMood = GetMostFrequentMood(entries);
+        mostFrequentMoodEmoji = GetMoodEmoji(mostFrequentMood);
+        moodTrend = GetMoodTrend(entries, 7);
+
+        // LOCKED ENTRIES COUNT
+        lockedEntriesCount = entries.Count(e => e.IsLocked);
+    }
+    private readonly Dictionary<string, string> MoodEmojiMap = new()
+{
+    // 😊 POSITIVE
+    { "Happy", "😊" },
+    { "Excited", "🤩" },
+    { "Relaxed", "😌" },
+    { "Grateful", "🙏" },
+    { "Confident", "💪" },
+
+    // 😐 NEUTRAL
+    { "Calm", "😌" },
+    { "Thoughtful", "🤔" },
+    { "Curious", "🧐" },
+    { "Nostalgic", "🕰️" },
+    { "Bored", "😴" },
+
+    // 😔 NEGATIVE
+    { "Sad", "😢" },
+    { "Angry", "😠" },
+    { "Stressed", "😰" },
+    { "Lonely", "🥺" },
+    { "Anxious", "😟" }
+};
+
+
+    private string GetMoodEmoji(string mood)
+{
+    if (string.IsNullOrWhiteSpace(mood))
+        return "🙂";
+
+    return MoodEmojiMap.TryGetValue(mood, out var emoji)
+        ? emoji
+        : "🙂";
+}
+
 
     private int CalculateCurrentStreak(List<JournalEntry> entries)
     {
-        if (entries == null || !entries.Any()) return 0;
-
-        var dates = entries
-            .Select(e => e.CreatedAt.Date)
-            .Distinct()
-            .OrderByDescending(d => d)
-            .ToList();
-
-        int streak = 0;
-        DateTime currentDate = DateTime.Today;
-
-        foreach (var date in dates)
+        if (!entries.Any()) return 0;
+        var dates = entries.Select(e => e.CreatedAt.Date).Distinct().OrderByDescending(d => d).ToList();
+        int streak = 1;
+        DateTime previousDate = dates[0];
+        for (int i = 1; i < dates.Count; i++)
         {
-            if (date == currentDate)
+            if ((previousDate - dates[i]).Days == 1)
             {
                 streak++;
-                currentDate = currentDate.AddDays(-1);
+                previousDate = dates[i];
             }
-            else if (date < currentDate)
-            {
-                // break streak on missing day
-                break;
-            }
+            else break;
         }
-
         return streak;
     }
 
-    private void ToggleTheme()
+    private double CalculateAverageWords(List<JournalEntry> entries)
     {
-        isDarkTheme = !isDarkTheme;
+        if (!entries.Any()) return 0;
+        return Math.Round(entries.Average(e => e.Content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length), 1);
+    }
+
+    private string GetMostFrequentMood(List<JournalEntry> entries)
+    {
+        if (!entries.Any()) return "";
+        return entries.Where(e => !string.IsNullOrEmpty(e.PrimaryMood))
+                      .GroupBy(e => e.PrimaryMood)
+                      .OrderByDescending(g => g.Count())
+                      .FirstOrDefault()?.Key ?? "";
+    }
+
+    private List<(DateTime Date, string Mood)> GetMoodTrend(List<JournalEntry> entries, int days)
+    {
+        var lastDays = DateTime.Today.AddDays(-days + 1);
+        return entries
+            .Where(e => e.CreatedAt.Date >= lastDays)
+            .OrderBy(e => e.CreatedAt.Date)
+            .Select(e => (e.CreatedAt.Date, e.PrimaryMood))
+            .ToList();
     }
 }
+b 

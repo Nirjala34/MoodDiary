@@ -11,11 +11,16 @@ namespace JournalApp.Models
         public string Content { get; set; } = string.Empty;
 
         public string PrimaryMood { get; set; } = string.Empty;
+         public bool IsLocked { get; set; }
+        public DateTime? LockedAt { get; set; }
         public List<string> SecondaryMoods { get; set; } = new();
+         public string SecondaryMood1 { get; set; } = string.Empty;
+         
+    public string SecondaryMood2 { get; set; } = string.Empty;
 
         public string MoodComment { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = new();
-           public string? OptionalNote { get; set; }
+          public string OptionalNote { get; set; }   = "";
 
         // SINGLE SOURCE OF DATE TRUTH
         public DateTime CreatedAt { get; set; } = DateTime.Now;

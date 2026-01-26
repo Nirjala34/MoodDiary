@@ -4,16 +4,17 @@
 
 <div class="auth-page">
     <div class="auth-card">
+
         <h4 class="text-center mb-4">Login</h4>
 
         <div class="mb-3">
             <label class="form-label">Email</label>
-            <InputText type="email" @bind-Value="email" class="form-control" placeholder="Enter your email" />
+            <InputText type="email" @bind-Value="email" class="form-control" placeholder="Enter your email"/>
         </div>
 
         <div class="mb-3">
             <label class="form-label">Password</label>
-            <InputText type="password" @bind-Value="password" class="form-control" placeholder="Enter your password" />
+            <InputText type="password" @bind-Value="password" class="form-control"placeholder="Enter password" />
         </div>
 
         @if (!string.IsNullOrEmpty(error))
@@ -28,6 +29,22 @@
         </div>
     </div>
 </div>
+
+@code {
+    private string email = "";
+    private string password = "";
+    private string error = "";
+
+    private async Task LoginUser()
+    {
+        var success = await UserService.LoginAsync(email, password);
+
+        if (success)
+            Nav.NavigateTo("/");
+        else
+            error = "Invalid email or password!";
+    }
+}
 
 <style>
 /* Full page dark theme layout */
@@ -62,8 +79,8 @@
 
 /* Inputs */
 .auth-card .form-control {
-    background-color: #0f1820;
-    color: #fff;
+    background-color: #ededed;
+    color: #8b8a8a;
     border: 1px solid #333;
     border-radius: 8px;
     padding: 10px;
@@ -99,24 +116,3 @@
 }
 </style>
 
-@code {
-    private string email = "";
-    private string password = "";
-    private string error = "";
-
-    private async Task LoginUser()
-{
-    try
-    {
-        var success = await UserService.LoginAsync(email, password);
-        if (success)
-            Nav.NavigateTo("/");
-        else
-            error = "Invalid email or password!";
-    }
-    catch (Exception ex)
-    {
-        error = $"Login failed: {ex.Message}";
-    }
-}
-}

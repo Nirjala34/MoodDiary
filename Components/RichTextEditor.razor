@@ -1,0 +1,79 @@
+@inject IJSRuntime JS
+
+<div class="rte-container">
+    <div class="rte-toolbar">
+        <button type="button" @onclick="@(() => Cmd("bold"))"><b>B</b></button>
+        <button type="button" @onclick="@(() => Cmd("italic"))"><i>I</i></button>
+
+        <button type="button" @onclick="@(() => Cmd("formatBlock", "h1"))">H1</button>
+        <button type="button" @onclick="@(() => Cmd("formatBlock", "h2"))">H2</button>
+        <button type="button" @onclick="@(() => Cmd("formatBlock", "h3"))">H3</button>
+
+        <button type="button" @onclick="@(() => Cmd("insertUnorderedList"))">• List</button>
+        <button type="button" @onclick="@(() => Cmd("insertOrderedList"))">1. List</button>
+
+        <!-- 🔗 LINK BUTTON -->
+        <button type="button" @onclick="InsertLink">🔗 Link</button>
+
+        <button type="button" @onclick="@(() => Cmd("removeFormat"))">Clear</button>
+    </div>
+
+    <div id="@EditorId"
+         class="rte-editor"
+         contenteditable="true"
+         @oninput="OnInput">
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Content { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ContentChanged { get; set; }
+    [Parameter] public string EditorId { get; set; } = "editor";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync(
+                "richTextEditor.setContent",
+                EditorId,
+                Content
+            );
+        }
+    }
+
+    private async Task Cmd(string command, string? value = null)
+    {
+        await JS.InvokeVoidAsync(
+            "richTextEditor.executeCommand",
+            command,
+            value
+        );
+
+        await OnInput();
+    }
+
+    private async Task InsertLink()
+    {
+        var url = await JS.InvokeAsync<string>("prompt", "Enter URL");
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            await JS.InvokeVoidAsync(
+                "richTextEditor.executeCommand",
+                "createLink",
+                url
+            );
+            await OnInput();
+        }
+    }
+
+    private async Task OnInput()
+    {
+        Content = await JS.InvokeAsync<string>(
+            "richTextEditor.getContent",
+            EditorId
+        );
+
+        await ContentChanged.InvokeAsync(Content);
+    }
+}

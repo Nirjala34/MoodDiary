@@ -22,11 +22,14 @@ public static class MauiProgram
     options.UseSqlite("Data Source=journal.db");
 });
 		builder.Services.AddSingleton<IJournalStorageService, SqliteJournalStorageService>();
+		
 		builder.Services.AddScoped<AnalyticsService>();
 		builder.Services.AddScoped<StreakService>();
 		builder.Services.AddSingleton<UserService>();
 		builder.Services.AddSingleton<SecurityService>();	
 		builder.Services.AddSingleton<ThemeService>();
+		builder.Services.AddScoped<PinService>();
+		builder.Services.AddScoped<PdfExportService>();
 
 
 #if DEBUG

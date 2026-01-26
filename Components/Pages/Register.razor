@@ -4,7 +4,7 @@
 
 <div class="auth-page">
     <div class="auth-card">
- 
+
         <h4 class="text-center mb-4">Register</h4>
 
         <div class="mb-3">
@@ -40,6 +40,41 @@
     </div>
 </div>
 
+@code {
+    private string name = "";
+    private string email = "";
+    private string password = "";
+    private string confirmPassword = "";
+    private string error = "";
+
+    private async Task RegisterUser()
+    {
+        error = "";
+
+        if (string.IsNullOrWhiteSpace(name) ||
+            string.IsNullOrWhiteSpace(email) ||
+            string.IsNullOrWhiteSpace(password))
+        {
+            error = "Please fill in all fields!";
+            return;
+        }
+
+        if (password != confirmPassword)
+        {
+            error = "Passwords do not match!";
+            return;
+        }
+
+        var success = await UserService.RegisterAsync(name, email, password);
+
+        if (success)
+            Nav.NavigateTo("/login");
+        else
+            error = "Registration failed! Email might already be in use.";
+    }
+}
+
+
 <style>
 .auth-page {
     display: flex;
@@ -69,8 +104,8 @@
 }
 
 .auth-card .form-control {
-    background-color: #0f1820;
-    color: #fff;
+    background-color:#ededed;
+    color: #000000;
     border: 1px solid #333;
     border-radius: 8px;
     padding: 10px;
@@ -94,7 +129,11 @@
     background-color: #1d54c4;
     border-color: #1d54c4;
 }
-
+.user-greeting {
+    color: #ffffff;
+    font-weight: 500;
+    margin-top: 1rem;
+}
 .auth-card a {
     color: #2b6be6;
     font-weight: 500;
@@ -104,36 +143,4 @@
 }
 </style>
 
-@code {
-    private string name = "";
-    private string email = "";
-    private string password = "";
-    private string confirmPassword = "";
-    private string error = "";
 
-    private async Task RegisterUser()
-    {
-        error = "";
-
-        if (string.IsNullOrWhiteSpace(name) ||
-            string.IsNullOrWhiteSpace(email) ||
-            string.IsNullOrWhiteSpace(password))
-        {
-            error = "Please fill in all fields!";
-            return;
-        }
-
-        if (password != confirmPassword)
-        {
-            error = "Passwords do not match!";
-            return;
-        }
-
-        var success = await UserService.RegisterAsync(name, email, password);
-
-        if (success)
-            Nav.NavigateTo("/login"); // go to login after registering
-        else
-            error = "Registration failed! Email might already be in use.";
-    }
-}

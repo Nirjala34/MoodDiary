@@ -5,32 +5,51 @@
 
 <div class="page @ThemeClass">
     <div class="sidebar">
+
+        <!-- Brand -->
         <div class="sidebar-brand">
             <div class="brand-title">📝 MoodDiary</div>
         </div>
 
-        <!-- Nav Menu -->
+        <!-- Navigation -->
         <NavMenu />
 
+        <!-- Auth Section -->
         <div class="sidebar-auth mt-auto p-3">
-            @if (UserService.GetCurrentUser() != null)
+
+            @if (UserService.IsLoggedIn)
             {
-                <div class="mb-2">Hello, @UserService.GetCurrentUser()?.Username!</div>
-                <button class="btn btn-theme w-100 mb-2" @onclick="Logout">Logout</button>
+                <div class="user-greeting mb-2">
+                    Hello, @UserService.CurrentUser!.Name!
+                </div>
+
+                <button class="btn btn-theme w-100 mb-2" @onclick="Logout">
+                    Logout
+                </button>
             }
             else
             {
-                <button class="btn btn-theme w-100 mb-1" @onclick='() => Nav.NavigateTo("/login")'>Login</button>
-                <button class="btn btn-theme w-100 mb-2" @onclick='() => Nav.NavigateTo("/register")'>Register</button>
+                <button class="btn btn-theme w-100 mb-1"
+                        @onclick='() => Nav.NavigateTo("/login")'>
+                    Login
+                </button>
+
+                <button class="btn btn-theme w-100 mb-2"
+                        @onclick='() => Nav.NavigateTo("/register")'>
+                    Register
+                </button>
             }
 
             <hr />
-            <button class="btn btn-theme toggle-theme-btn w-100" @onclick="ToggleTheme">
+
+            <button class="btn btn-theme toggle-theme-btn w-100"
+                    @onclick="ToggleTheme">
                 Switch to @(isDark ? "Light" : "Dark") Theme
             </button>
         </div>
     </div>
 
+    <!-- Main Content -->
     <main>
         <article class="content px-4">
             <div class="app-container">
@@ -41,7 +60,7 @@
 </div>
 
 <style>
-/* ------------------------ Base ------------------------ */
+/* ---------------- Base ---------------- */
 .page {
     display: flex;
     min-height: 100vh;
@@ -52,7 +71,6 @@
     width: 220px;
     display: flex;
     flex-direction: column;
-    transition: background 0.3s, color 0.3s;
 }
 
 .sidebar-brand {
@@ -61,17 +79,22 @@
     font-size: 1.2rem;
 }
 
-.sidebar-auth {
-    margin-top: auto;
+.user-greeting {
+    color: #ffffff;   
+    font-weight: 500;
 }
 
-main {
-    flex: 1;
-    min-height: 100vh;
-    transition: background 0.3s, color 0.3s;
+.light-theme {
+    background-color: #f5f5f5;
+    color: #111;   
 }
 
-/* ------------------------ Buttons ------------------------ */
+.dark-theme .sidebar {
+    background: #0f172a; 
+    color: #e5e7eb;
+     border-right: 1px solid #1f2937
+}
+
 .btn-theme {
     padding: 0.5rem 0.8rem;
     font-weight: 500;
@@ -86,16 +109,17 @@ main {
     margin-top: 5px;
 }
 
-/* ------------------------ Light Theme ------------------------ */
-.light-theme {
-    background-color: #f5f5f5;
-    color: #111;
-}
+/* ---------------- Light Theme ---------------- */
+
 
 .light-theme .sidebar {
     background-color: #ffffff;
     color: #111;
     border-right: 1px solid #ddd;
+}
+
+.light-theme .user-greeting {
+    color: #fffefe;
 }
 
 .light-theme .btn-theme {
@@ -109,7 +133,7 @@ main {
     color: #fff;
 }
 
-/* ------------------------ Dark Theme ------------------------ */
+/* ---------------- Dark Theme ---------------- */
 .dark-theme {
     background-color: #0f1820;
     color: #eee;
@@ -138,8 +162,9 @@ main {
 
     protected override async Task OnInitializedAsync()
     {
-        // Load saved theme from localStorage
-        var savedTheme = await JS.InvokeAsync<string>("localStorage.getItem", "moodDiaryTheme");
+        var savedTheme = await JS.InvokeAsync<string>(
+            "localStorage.getItem", "moodDiaryTheme");
+
         if (!string.IsNullOrEmpty(savedTheme))
             isDark = savedTheme == "dark";
     }
@@ -147,12 +172,15 @@ main {
     private async Task ToggleTheme()
     {
         isDark = !isDark;
-        await JS.InvokeVoidAsync("localStorage.setItem", "moodDiaryTheme", isDark ? "dark" : "light");
+        await JS.InvokeVoidAsync(
+            "localStorage.setItem",
+            "moodDiaryTheme",
+            isDark ? "dark" : "light");
     }
 
     private void Logout()
     {
         UserService.Logout();
-        Nav.NavigateTo("/login");
+        Nav.NavigateTo("/login", true);
     }
 }

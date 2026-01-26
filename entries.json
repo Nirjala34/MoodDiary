@@ -1,0 +1,244 @@
+[
+  {
+    "Id": "6b4e9711-5db1-4d79-8615-bfe3da242858",
+    "Title": "Reflections on a Busy Morning",
+    "Content": "\u003Cp data-start=\u0022428\u0022 data-end=\u0022643\u0022\u003EToday was a really productive day. I managed to finish the tasks I had been postponing, and it feels amazing to check them off my list.\u0026nbsp;\u003C/p\u003E",
+    "PrimaryMood": "Happy",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Relaxed",
+      "Grateful"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Self Care"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-14T00:00:00+05:45",
+    "UpdatedAt": "2026-01-25T10:50:52.1704616+05:45",
+    "Date": "2026-01-14T00:00:00+05:45"
+  },
+  {
+    "Id": "6dfa004d-5c44-4d97-9dfe-2b5220f6ed91",
+    "Title": "A Calm Morning and Little Wins",
+    "Content": "\u003Cdiv\u003EToday started off beautifully calm. I woke up early and enjoyed a hot cup of coffee while listening to my favorite music.\u0026nbsp;\u003C/div\u003E",
+    "PrimaryMood": "Relaxed",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Relaxed",
+      "Grateful"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Work"
+    ],
+    "OptionalNote": "I want to remember that small wins add up",
+    "CreatedAt": "2026-01-15T00:00:00",
+    "UpdatedAt": "2026-01-22T16:02:47.7195155+05:45",
+    "Date": "2026-01-15T00:00:00"
+  },
+  {
+    "Id": "83735e17-3140-47ab-b34e-c67d3c83165a",
+    "Title": "Evening Reflection and Gratitude",
+    "Content": "\u003Cdiv\u003EThe evening was quiet and gave me time to reflect on the day.\u0026nbsp;\u003C/div\u003E\u003Cdiv\u003E\u003Cbr\u003E\u003C/div\u003E",
+    "PrimaryMood": "Calm",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Curious",
+      "Bored"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Family"
+    ],
+    "OptionalNote": "\n",
+    "CreatedAt": "2026-01-16T00:00:00",
+    "UpdatedAt": "2026-01-25T12:37:35.0243726+05:45",
+    "Date": "2026-01-16T00:00:00"
+  },
+  {
+    "Id": "03205f50-7bf2-49d2-b3b3-6077610d0035",
+    "Title": "Midday Walk and Mental Clarity",
+    "Content": "\u003Cdiv\u003E\u003Ci\u003EI noticed small things I usually overlook the birds chirping, the patterns of the clouds, and the way the trees swayed in the wind.\u0026nbsp;\u003C/i\u003E\u003C/div\u003E",
+    "PrimaryMood": "Excited",
+    "IsLocked": true,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Calm",
+      "Bored"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Travel"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-17T00:00:00",
+    "UpdatedAt": "2026-01-25T12:36:53.193097+05:45",
+    "Date": "2026-01-17T00:00:00"
+  },
+  {
+    "Id": "a30d0843-3535-4c22-8ca0-12bd32ea803a",
+    "Title": "Evening Reflections and Gratitude",
+    "Content": "\u003Ci\u003ETonight I spent some quiet time reflecting on the day. I realized that despite a few challenges, there were many small wins that made me feel accomplished.\u0026nbsp;\u0026nbsp;\u003C/i\u003E",
+    "PrimaryMood": "Sad",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Thoughtful",
+      "Anxious"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Self Care"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-18T00:00:00",
+    "UpdatedAt": "2026-01-25T10:49:53.454036+05:45",
+    "Date": "2026-01-18T00:00:00"
+  },
+  {
+    "Id": "6b52fbb3-1e25-406c-b17c-e9d8198e765f",
+    "Title": "Today, honestly",
+    "Content": "\u003Ci\u003EToday felt a little heavy but manageable. Not everything went perfectly, yet I kept moving forward, and that matters.\u003C/i\u003E",
+    "PrimaryMood": "Thoughtful",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Calm",
+      "Curious"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Personal Growth"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-20T00:00:00",
+    "UpdatedAt": "2026-01-25T10:50:02.9969498+05:45",
+    "Date": "2026-01-20T00:00:00"
+  },
+  {
+    "Id": "e4c3c2f0-c4f7-4531-8600-f2d4caf53687",
+    "Title": "Learning to let go",
+    "Content": "Today reminded me that I don\u2019t have to carry everything with me. Some thoughts, expectations, and worries were never meant to stay this long.\u003Cdiv\u003E\u003Ca href=\u0022https://books.google.com.np/books?id=n1_6DwAAQBAJ\u0026amp;printsec=copyright\u0026amp;redir_esc=y#v=onepage\u0026amp;q\u0026amp;f=false\u0022\u003Ehttps://books.google.com.np/books?id=n1_6DwAAQBAJ\u0026amp;printsec=copyright\u0026amp;redir_esc=y#v=onepage\u0026amp;q\u0026amp;f=false\u003C/a\u003E\u003Cbr\u003E\u003C/div\u003E",
+    "PrimaryMood": "Calm",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Thoughtful",
+      "Curious"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Relationships"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-22T00:00:00+05:45",
+    "UpdatedAt": "2026-01-26T19:20:42.3820427+05:45",
+    "Date": "2026-01-22T00:00:00+05:45"
+  },
+  {
+    "Id": "db39abf4-cbb0-4f0d-8126-8babfbe7345f",
+    "Title": "A Day of Small Wins",
+    "Content": "One of the highlights was learning something new that I had been curious about for a while.\u0026nbsp;It made me feel accomplished and more confident in my abilities.",
+    "PrimaryMood": "Happy",
+    "IsLocked": true,
+    "LockedAt": "2026-01-26T19:20:29.4178058+05:45",
+    "SecondaryMoods": [
+      "Excited",
+      "Grateful"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Career"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-23T00:00:00+05:45",
+    "UpdatedAt": "2026-01-26T19:20:29.4178049+05:45",
+    "Date": "2026-01-23T00:00:00+05:45"
+  },
+  {
+    "Id": "80525d17-7cfb-41d7-8525-cda6c440afb8",
+    "Title": "Finding Balance in a Busy Day",
+    "Content": "Today was a productive and meaningful day for me. I spent most of my time working on my tasks and learning new things related to my project",
+    "PrimaryMood": "Bored",
+    "IsLocked": false,
+    "LockedAt": "2026-01-25T13:05:16.3902838+05:45",
+    "SecondaryMoods": [
+      "Thoughtful",
+      "Curious"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Work",
+      "Studies"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-24T00:00:00",
+    "UpdatedAt": "2026-01-25T13:05:16.390283+05:45",
+    "Date": "2026-01-24T00:00:00"
+  },
+  {
+    "Id": "4bcd1e86-af9d-4fd7-82d2-0ffe03b9efb5",
+    "Title": "Feeling Low \u0026 Emotionally Drained",
+    "Content": "Today was emotionally heavy. I felt sad for reasons I couldn\u2019t fully explain, and that made it even harder to deal with.\u0026nbsp;",
+    "PrimaryMood": "Sad",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Stressed"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Mental-health"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-25T00:00:00+05:45",
+    "UpdatedAt": "2026-01-25T13:35:22.3211682+05:45",
+    "Date": "2026-01-25T00:00:00+05:45"
+  },
+  {
+    "Id": "d84ce89e-6422-4189-9943-219d9d1d157c",
+    "Title": "Balancing Responsibilities and Emotions",
+    "Content": "Today made me realize how important balance is in my daily life. I had several responsibilities to manage, and at times it felt overwhelming.",
+    "PrimaryMood": "Thoughtful",
+    "IsLocked": false,
+    "LockedAt": null,
+    "SecondaryMoods": [
+      "Curious",
+      "Bored"
+    ],
+    "SecondaryMood1": "",
+    "SecondaryMood2": "",
+    "MoodComment": "",
+    "Tags": [
+      "Work"
+    ],
+    "OptionalNote": "",
+    "CreatedAt": "2026-01-26T00:00:00+05:45",
+    "UpdatedAt": "2026-01-26T10:53:42.5074886+05:45",
+    "Date": "2026-01-26T00:00:00+05:45"
+  }
+]

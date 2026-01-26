@@ -92,10 +92,68 @@
     }
 
     .nav-scrollable {
-        /* Never collapse the sidebar for wide screens */
         display: block;
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
     }
+}
+/* Journal dropdown arrow */
+.dropdown-arrow {
+    transition: transform 0.25s ease;
+    font-size: 1rem;
+    color:#d7d7d7;
+}
+
+/* Rotate when open */
+.dropdown-arrow.open {
+    transform: rotate(90deg);
+}
+
+/* Ensure nav items don't break on small screens */
+.nav-item ::deep a {
+    color: #d7d7d7;
+    border-radius: 4px;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    line-height: 1.5rem;
+    white-space: nowrap;       
+    overflow: hidden;          
+    text-overflow: ellipsis;   
+    gap: 0.5rem;               
+}
+
+/* Make emoji smaller on very small screens */
+@media (max-width: 480px) {
+    .nav-item ::deep a span {
+        font-size: 0.9rem; 
+    }
+
+    .nav-item ::deep a {
+        font-size: 0.85rem; 
+    }
+}
+
+/* Optional: add flex wrap if you want icon on top of text */
+@media (max-width: 360px) {
+    .nav-item ::deep a {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: auto;
+        padding: 0.5rem 0;
+    }
+}
+
+.nav-section .nav-link,
+.nav-section .nav-link span {
+    color: #d7d7d7 !important;
+}
+
+
+.journal-toggle,
+.journal-toggle span {
+    color: #d7d7d7!important;
+}
+
+.journal-submenu .nav-link {
+    color:#d7d7d7 !important;
 }

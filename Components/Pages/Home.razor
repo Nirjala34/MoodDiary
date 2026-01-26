@@ -2,6 +2,7 @@
 @using JournalApp.Models
 @inject JournalApp.Services.IJournalStorageService Storage
 @inject NavigationManager Nav
+@inject PinService PinService
 
 
 
@@ -44,76 +45,137 @@
             </div>
         </div>
     </div>
+ <!-- Getting Started -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="getting-started-card">
+            <h4>🚀 Getting Started</h4>
+            <p>
+                Click <strong>"Add New Entry"</strong> to create your first journal entry.
+                Track your moods, add tags, and build a journaling habit!
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- What You Can Do -->
+<div class="row mt-5">
+    <div class="col-12 mb-4">
+        <h3 class="section-title">What You Can Do</h3>
+        <p class="section-subtitle">
+            Explore the core features designed to help you reflect, track, and grow.
+        </p>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="capability-card">
+            <span class="capability-icon">📓</span>
+            <h5>Personal Reflections</h5>
+            <p>
+                Write daily reflections in a distraction-free space that supports expressive writing.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="capability-card">
+            <span class="capability-icon">🎭</span>
+            <h5>Emotion Mapping</h5>
+            <p>
+                Record how you feel using a range of emotions to better understand your mood shifts.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="capability-card">
+            <span class="capability-icon">🧩</span>
+            <h5>Custom Labels</h5>
+            <p>
+                Add labels to entries to organize experiences and revisit them easily later.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="capability-card">
+            <span class="capability-icon">🗂️</span>
+            <h5>Smart Search</h5>
+            <p>
+                Quickly locate past entries using filters like date, mood, or keywords.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="capability-card">
+            <span class="capability-icon">📅</span>
+            <h5>Consistency Tracker</h5>
+            <p>
+                Stay motivated by monitoring how regularly you write and reflect.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="capability-card">
+            <span class="capability-icon">📈</span>
+            <h5>Insight Reports</h5>
+            <p>
+                View summaries and visual trends that reveal how your moods evolve over time.
+            </p>
+        </div>
+    </div>
+</div>
+<!-- ABOUT MOODDIARY -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="about-card-home">
+            <h4 class="about-title">
+                <span class="about-icon">ℹ️</span>
+                About MoodDiary
+            </h4> 
+
+            <div class="about-section">
+                <div class="about-label">Version</div>
+                <div>9.0 – Coursework</div>
+            </div>
+
+            <div class="about-section">
+                <div class="about-label">What is MoodDiary?</div>
+                <p>
+                    MoodDiary is a personal journaling application designed to help you
+                    reflect on your daily experiences, track emotional patterns,
+                    and build a consistent self-reflection habit.
+                </p>
+            </div>
+
+            <div class="about-section">
+                <div class="about-label">Key Features</div>
+                <ul class="about-list">
+                    <li>Write one journal entry per day with mood tracking</li>
+                    <li>Choose from 15 moods grouped into Positive, Neutral, and Negative</li>
+                    <li>Use built-in tags or create your own custom tags</li>
+                    <li>Search and filter entries by date, mood, or keywords</li>
+                    <li>Track writing streaks to build consistency</li>
+                    <li>View insights and analytics about your mood trends</li>
+                    <li>Protect your journal using PIN security</li>
+                    <li>Switch between Light and Dark themes</li>
+                </ul>
+            </div>
+
+            <div class="about-section">
+                <div class="about-label">Storage</div>
+                <div>
+                    All data is stored locally using SQLite to ensure privacy
+                    and offline access.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 </div>
  
 
-<style>
-.dashboard {
-    padding: 20px;
-    font-family: 'Inter', sans-serif;
-}
-
-.welcome-section {
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    color: #fff;
-    border-radius: 12px;
-    padding: 20px 30px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-.welcome-note {
-    font-size: 0.95rem;
-    margin-top: 10px;
-    color: #fff3e0; 
-    line-height: 1.5;
-}
-.welcome-title {
-    font-size: 2rem;
-    font-weight: bold;
-}
-
-.welcome-subtitle {
-    font-size: 1rem;
-    margin-top: 5px;
-    color: #ffffff;
-}
-
-
-.p {rgb(255, 255, 255)
-    color: #e0e0e0;
-}
-.stats-cards .stat-card {
-    border-radius: 12px;
-    background: #fff;
-    color: #333;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stats-cards .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-.stats-cards h2 {
-    font-size: 1.5rem;
-    margin: 10px 0 0 0;
-}
-
-.quick-actions .action-card {
-    background: #2575fc;
-    color: #fff;
-    text-align: center;
-    padding: 25px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
-}
-
-.quick-actions .action-card:hover {
-    transform: translateY(-5px);
-    background: #6a11cb;
-}
-</style>

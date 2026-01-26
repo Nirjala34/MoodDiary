@@ -4,134 +4,352 @@
 @using Microsoft.Maui.Storage
 @inject JournalApp.Services.IJournalStorageService Storage
 @inject IJSRuntime JS
+@inject PinService PinService
 
-<h3 style="margin-top: 30px; margin-bottom: 20px; font-size: 2rem; font-weight: 900; letter-spacing: 0.8px;">
-    Settings
-</h3>
-
+<h3 class="page-title">Settings</h3>
 
 <div class="card p-3">
+
+    <!-- WARNING -->
     <div class="note-warning mb-3 p-3">
-        <strong>Note:</strong> Clearing your browser or app data will delete all journal entries. Always keep backups of important entries.
+        <strong>Note:</strong> Clearing your browser or app data will delete all journal entries.
+        Always keep backups of important entries.
     </div>
 
+    <!-- EXPORT -->
     <div class="mb-3">
-        <button class="btn btn-outline-primary" @onclick="Export">Export Entries (.json)</button>
+        <button class="btn btn-outline-primary" @onclick="Export">
+            Export Entries (.json)
+        </button>
     </div>
 
     <hr />
+
+    <!-- STORAGE INFO -->
     <h5>Storage</h5>
-    <div class="mb-2">
-        @if (Storage is JournalApp.Services.SqliteJournalStorageService sqlite)
-        {
-            <div>Using SQLite DB: <code>@sqlite.GetDatabasePath()</code></div>
-        }
-    </div>
+    @if (Storage is JournalApp.Services.SqliteJournalStorageService sqlite)
+    {
+        <div>
+            Using SQLite DB:
+            <code>@sqlite.GetDatabasePath()</code>
+        </div>
+    }
 
     <hr />
-    <h5>Custom Tags</h5>
-    <div class="d-flex gap-2 align-items-center mb-2">
-        <input class="form-control form-control-sm" placeholder="Add a new tag" @bind="newTag" />
-        <button class="btn btn-sm btn-primary" @onclick="AddTag">+ Add</button>
-    </div>
-    <div class="mb-2">
-        @if (customTags == null || !customTags.Any())
-        {
-            <div class="text-muted">No custom tags yet. Add your first custom tag above.</div>
-        }
-        else
-        {
-            @foreach (var t in customTags)
-            {
-                <span class="tag-chip">@t <button class="btn-close btn-close-white btn-sm ms-2" @onclick="() => RemoveTag(t)"></button></span>
-            }
-        }
-    </div>
 
-    <hr />
-    <h5>Custom Moods</h5>
-    <div class="d-flex gap-2 align-items-center mb-2">
-        <input class="form-control form-control-sm" placeholder="Add a new mood" @bind="newMood" />
-        <button class="btn btn-sm btn-primary" @onclick="AddMood">+ Add</button>
-    </div>
-    <div class="mb-2">
-        @if (customMoods == null || !customMoods.Any())
-        {
-            <div class="text-muted">No custom moods yet. Add your first custom mood above.</div>
-        }
-        else
-        {
-            @foreach (var m in customMoods)
-            {
-                <button class="mood-button selected ms-1 mb-1" @onclick="() => RemoveMood(m)">@m &nbsp;<span class="small">✕</span></button>
-            }
-        }
-    </div>
+    <!-- 🔐 PIN SECURITY -->
+    <h5>Security (PIN Protection)</h5>
 
-    <hr />
-    <div class="mb-3">
-        <button class="btn btn-danger" @onclick="ClearAll">Clear All Entries</button>
-    </div>
+    @if (!hasPin)
+    {
+        <div class="mb-3">
+            <input type="password"
+                   class="form-control mb-2"
+                   placeholder="Set PIN (min 4 digits)"
+                   @bind="newPin" />
+
+            <input type="password"
+                   class="form-control mb-2"
+                   placeholder="Confirm PIN"
+                   @bind="confirmPin" />
+
+            <button class="btn btn-primary" @onclick="EnablePin">
+                Enable PIN Protection
+            </button>
+        </div>
+    }
+    else
+    {
+        <input type="password"
+               class="form-control mb-2"
+               placeholder="Current PIN"
+               @bind="oldPin" />
+
+        <input type="password"
+               class="form-control mb-2"
+               placeholder="New PIN"
+               @bind="newPin" />
+
+        <input type="password"
+               class="form-control mb-2"
+               placeholder="Confirm New PIN"
+               @bind="confirmPin" />
+
+        <div class="d-flex gap-2 mb-2">
+            <button class="btn btn-primary" @onclick="ChangePin">
+                Change PIN
+            </button>
+
+            <button class="btn btn-outline-danger" @onclick="DisablePin">
+                Remove PIN
+            </button>
+        </div>
+    }
+
     @if (!string.IsNullOrEmpty(message))
     {
-        <div class="alert alert-info">@message</div>
+        <div class="alert alert-success mt-2">@message</div>
     }
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-2">@errorMessage</div>
+    }
+
+    <hr />
+
+    <!-- CUSTOM TAGS -->
+    <h5>Custom Tags</h5>
+    <div class="d-flex gap-2 align-items-center mb-2">
+        <input class="form-control form-control-sm"
+               placeholder="Add a new tag"
+               @bind="newTag" />
+        <button class="btn btn-sm btn-primary" @onclick="AddTag">+ Add</button>
+    </div>
+
+    @if (customTags != null && customTags.Any())
+    {
+        <div class="mb-2">
+            @foreach (var t in customTags)
+            {
+                <span class="tag-chip">
+                    @t
+                    <button class="btn-close btn-close-white btn-sm ms-2"
+                            @onclick="() => RemoveTag(t)">
+                    </button>
+                </span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-muted">No custom tags yet.</div>
+    }
+
+    <hr />
+
+    <!-- CUSTOM MOODS -->
+    <h5>Custom Moods</h5>
+    <div class="d-flex gap-2 align-items-center mb-2">
+        <input class="form-control form-control-sm"
+               placeholder="Add a new mood"
+               @bind="newMood" />
+        <button class="btn btn-sm btn-primary" @onclick="AddMood">+ Add</button>
+    </div>
+
+    @if (customMoods != null && customMoods.Any())
+    {
+        <div class="mb-2">
+            @foreach (var m in customMoods)
+            {
+                <button class="mood-button selected ms-1 mb-1"
+                        @onclick="() => RemoveMood(m)">
+                    @m ✕
+                </button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-muted">No custom moods yet.</div>
+    }
+
+    <hr />
+
+    <!-- CLEAR ALL -->
+    <button class="btn btn-danger" @onclick="ClearAll">
+        Clear All Entries
+    </button>
+
 </div>
 
 @code {
     private string? message;
+    private string? errorMessage;
 
-    private List<string>? customTags;
-    private List<string>? customMoods;
-    private string newTag = string.Empty;
-    private string newMood = string.Empty;
+    private List<string> customTags = new();
+    private List<string> customMoods = new();
+    private string newTag = "";
+    private string newMood = "";
+
+    // PIN
+    private bool hasPin;
+    private string oldPin = "";
+    private string newPin = "";
+    private string confirmPin = "";
 
     protected override async Task OnInitializedAsync()
     {
-        customTags = await Storage.GetCustomTagsAsync();
-        customMoods = await Storage.GetCustomMoodsAsync();
+        customTags = await Storage.GetCustomTagsAsync() ?? new List<string>();
+        customMoods = await Storage.GetCustomMoodsAsync() ?? new List<string>();
+        hasPin = await PinService.HasPinAsync();
     }
 
+    // EXPORT
     private async Task Export()
     {
-        var path = Path.Combine(FileSystem.AppDataDirectory, $"journal-export-{DateTime.Now:yyyyMMddHHmmss}.json");
+        var path = Path.Combine(
+            FileSystem.AppDataDirectory,
+            $"journal-export-{DateTime.Now:yyyyMMddHHmmss}.json");
+
         await Storage.ExportAsync(path);
         message = $"Exported to: {path}";
+        errorMessage = null;
     }
 
-
+    // TAGS
     private async Task AddTag()
     {
         if (string.IsNullOrWhiteSpace(newTag)) return;
-        await Storage.AddCustomTagAsync(newTag.Trim());
-        newTag = string.Empty;
-        customTags = await Storage.GetCustomTagsAsync();
+
+        string tag = newTag.Trim();
+
+        if (customTags.Contains(tag))
+        {
+            errorMessage = "Tag already exists!";
+            message = null;
+            return;
+        }
+
+        customTags.Add(tag);
+        await Storage.SaveTagsAsync(customTags); //  persist
+        newTag = "";
+        message = $"Tag '{tag}' added successfully.";
+        errorMessage = null;
     }
 
     private async Task RemoveTag(string t)
     {
-        await Storage.RemoveCustomTagAsync(t);
-        customTags = await Storage.GetCustomTagsAsync();
+        customTags.Remove(t);
+        await Storage.SaveTagsAsync(customTags); //  persist
+        message = $"Tag '{t}' removed.";
+        errorMessage = null;
     }
 
+    // MOODS
     private async Task AddMood()
     {
         if (string.IsNullOrWhiteSpace(newMood)) return;
-        await Storage.AddCustomMoodAsync(newMood.Trim());
-        newMood = string.Empty;
-        customMoods = await Storage.GetCustomMoodsAsync();
+
+        string mood = newMood.Trim();
+
+        if (customMoods.Contains(mood))
+        {
+            errorMessage = "Mood already exists!";
+            message = null;
+            return;
+        }
+
+        customMoods.Add(mood);
+        await Storage.SaveMoodsAsync(customMoods); //  persist
+        newMood = "";
+        message = $"Mood '{mood}' added successfully.";
+        errorMessage = null;
     }
 
     private async Task RemoveMood(string m)
     {
-        await Storage.RemoveCustomMoodAsync(m);
-        customMoods = await Storage.GetCustomMoodsAsync();
+        customMoods.Remove(m);
+        await Storage.SaveMoodsAsync(customMoods); //  persist
+        message = $"Mood '{m}' removed.";
+        errorMessage = null;
     }
 
+    // CLEAR ALL ENTRIES
     private async Task ClearAll()
     {
-        if (!await JS.InvokeAsync<bool>("confirm", "Clear all journal entries? This cannot be undone.")) return;
+        if (!await JS.InvokeAsync<bool>("confirm", "Clear all journal entries?")) return;
+
         await Storage.ClearAllAsync();
         message = "All entries cleared.";
+        errorMessage = null;
+    }
+
+    //  PIN LOGIC
+    private async Task EnablePin()
+    {
+        errorMessage = message = null;
+
+        if (string.IsNullOrWhiteSpace(newPin) || newPin.Length < 4 || newPin != confirmPin)
+        {
+            errorMessage = "PIN must match and be at least 4 digits.";
+            return;
+        }
+
+        await PinService.SetPinAsync(newPin);
+        hasPin = true;
+        ClearPinFields();
+        message = "PIN enabled successfully.";
+    }
+
+    private async Task ChangePin()
+    {
+        errorMessage = message = null;
+
+        if (string.IsNullOrWhiteSpace(oldPin))
+        {
+            errorMessage = "Please enter your current PIN.";
+            return;
+        }
+
+        bool isValid = await PinService.ValidatePinAsync(oldPin.Trim());
+        if (!isValid)
+        {
+            errorMessage = "Incorrect PIN.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newPin) || newPin != confirmPin)
+        {
+            errorMessage = "New PINs do not match.";
+            return;
+        }
+
+        if (newPin.Length < 4)
+        {
+            errorMessage = "New PIN must be at least 4 digits.";
+            return;
+        }
+
+        await PinService.SetPinAsync(newPin);
+        ClearPinFields();
+        message = "PIN changed successfully.";
+    }
+
+    private async Task DisablePin()
+    {
+        errorMessage = message = null;
+
+        if (string.IsNullOrWhiteSpace(oldPin))
+        {
+            errorMessage = "Please enter your current PIN.";
+            return;
+        }
+
+        bool isValid = await PinService.ValidatePinAsync(oldPin.Trim());
+        if (!isValid)
+        {
+            errorMessage = "Incorrect PIN.";
+            return;
+        }
+
+        await PinService.RemovePinAsync();
+        hasPin = false;
+        ClearPinFields();
+        message = "PIN protection removed.";
+    }
+
+    private void ClearPinFields()
+    {
+        oldPin = "";
+        newPin = "";
+        confirmPin = "";
     }
 }
+
+<style>
+.page-title { margin-top: 30px; margin-bottom: 20px; font-size: 2rem; font-weight: 900; }
+.tag-chip { display: inline-flex; align-items: center; background: #2b6be6; color: white; padding: 6px 10px; border-radius: 20px; margin: 4px; font-size: .85rem; }
+.mood-button { background: #f9fafb; border: 1px solid #d0d5dd; border-radius: 20px; padding: 5px 12px; cursor: pointer; font-size: .85rem; }
+.mood-button.selected { background: #2b6be6; color: white; }
+.note-warning { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; color: #856404; }
+</style>

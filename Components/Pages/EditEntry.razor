@@ -2,9 +2,10 @@
 @using JournalApp.Models
 @inject JournalApp.Services.IJournalStorageService Storage
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 @using Microsoft.AspNetCore.Components.Web
 
-<h3>Edit Entry</h3>
+<h3 class="page-title">Edit Entry</h3>
 
 @if (entry == null)
 {
@@ -13,247 +14,315 @@
 else
 {
     <div class="card p-4 entry-card">
+
+        <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="m-0">Edit Entry</h4>
-            <div>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="TogglePreview">
-                    @(showPreview ? "Hide" : "Show") Preview
-                </button>
-            </div>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="TogglePreview">
+                @(showPreview ? "Hide" : "Show") Preview
+            </button>
         </div>
 
         <!-- DATE -->
         <div class="mb-2">
             <label>Date</label>
-            <InputDate @bind-Value="entry.CreatedAt" class="form-control" />
+            <InputDate @bind-Value="selectedDate" class="form-control" />
         </div>
 
         <!-- TITLE -->
         <div class="mb-2">
             <label>Title</label>
-            <InputText @bind-Value="entry.Title" class="form-control" />
+            <InputText @bind-Value="entry.Title"
+                       class="form-control"
+                       placeholder="Enter your journal title..." />
         </div>
 
         <!-- CONTENT -->
-        <div class="mb-2">
-            <label>Content (Markdown)</label>
-            <textarea @bind="entry.Content" class="form-control" rows="8"></textarea>
+        <div class="mb-3">
+            <label>Content</label>
+            <RichTextEditor @bind-Content="entry.Content" EditorId="editJournalEditor" />
         </div>
 
-        <!-- OPTIONAL NOTE -->
+        <!-- OPTIONAL NOTES -->
         <div class="mb-2">
-            <label>📝 Optional Note</label>
+            <label>📝 Optional Notes</label>
             <textarea class="form-control"
                       rows="4"
-                      placeholder="Any extra thoughts (optional)..."
-                      @bind="entry.OptionalNote">
-            </textarea>
-            <small class="text-muted">You can add extra notes here. Optional.</small>
+                      @bind="entry.OptionalNote"
+                      placeholder="Add any extra thoughts or reflections..."></textarea>
         </div>
 
         <!-- PRIMARY MOOD -->
-        <div class="mb-2">
-            <label>Primary Mood</label>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var m in moods)
+        <div class="mb-3">
+            <label>Primary Mood (Required)</label>
+            <select class="form-control" value="@entry.PrimaryMood" @onchange="OnPrimaryMoodChanged">
+                <option value="">-- Select Primary Mood --</option>
+                @foreach (var group in moodGroups)
                 {
-                    <button type="button"
-                            class="mood-button @(entry.PrimaryMood == m.Key ? "selected" : "")"
-                            @onclick="() => SetPrimaryMood(m.Key)">
-                        @m.Value
-                    </button>
+                    <optgroup label="@group.Key">
+                        @foreach (var mood in group.Value)
+                        {
+                            <option value="@mood.Key">@mood.Value</option>
+                        }
+                    </optgroup>
                 }
-            </div>
+            </select>
+            @if (!string.IsNullOrEmpty(PrimaryMoodCategory))
+            {
+                <small class="text-muted d-block mt-1">Category: @PrimaryMoodCategory</small>
+            }
         </div>
 
         <!-- SECONDARY MOODS -->
         <div class="mb-3">
-            <label>Secondary Moods</label>
-            <div class="mood-grid secondary-grid">
-                @foreach (var m in moods)
-                {
-                    var isSelected = entry.SecondaryMoods?.Contains(m.Key) ?? false;
-                    <button type="button"
-                            class="mood-button secondary @(isSelected ? "selected" : "")"
-                            @onclick="() => ToggleSecondaryMood(m.Key)">
-                        @m.Value
-                    </button>
-                }
-            </div>
-            <div class="small text-muted">Select up to 2 secondary moods.</div>
-        </div>
+            <label>Secondary Mood (Optional)</label>
 
-        <!-- MOOD COMMENT -->
-        <div class="mb-2">
-            <label>💭 Mood Comment (optional)</label>
-            <InputText @bind-Value="entry.MoodComment" class="form-control" />
+            <select class="form-control mb-1" value="@secondaryMood1" @onchange="OnSecondaryMood1Changed" disabled="@(!PrimaryMoodSelected)">
+                <option value="">-- First Secondary Mood --</option>
+                @if (PrimaryMoodSelected)
+                {
+                    <optgroup label="@PrimaryMoodCategory">
+                        @foreach (var mood in GetMoodsForCategory(PrimaryMoodCategory))
+                        {
+                            <option value="@mood.Key">@mood.Value</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+
+            <select class="form-control" value="@secondaryMood2" @onchange="OnSecondaryMood2Changed" disabled="@(!PrimaryMoodSelected)">
+                <option value="">-- Second Secondary Mood --</option>
+                @if (PrimaryMoodSelected)
+                {
+                    <optgroup label="@PrimaryMoodCategory">
+                        @foreach (var mood in GetMoodsForCategory(PrimaryMoodCategory))
+                        {
+                            <option value="@mood.Key">@mood.Value</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+
+            <small class="text-muted d-block mt-1">Secondary moods must be from the same category as primary and cannot duplicate.</small>
         </div>
 
         <!-- TAGS -->
-        <div class="mb-2">
+        <div class="mb-3">
             <label>Tags</label>
-            <div class="d-flex gap-2 align-items-center">
-                <input placeholder="Add tag"
-                       @bind="tagInput"
-                       class="form-control form-control-sm"
+
+            <div class="d-flex gap-2 mb-2">
+                <input class="form-control form-control-sm"
+                       placeholder="Add tag"
+                       value="@tagInput"
+                       @oninput="e => tagInput = e.Value?.ToString() ?? string.Empty"
                        @onkeydown="OnTagInputKeyDown" />
                 <button class="btn btn-sm btn-outline-primary" @onclick="AddTag">Add</button>
             </div>
 
-            <div class="mt-2">
-                @foreach (var t in entry.Tags ?? new List<string>())
+            <div class="mb-2">
+                @foreach (var t in entry.Tags)
                 {
                     <span class="tag-chip">
                         @t
-                        <button type="button" class="btn-close btn-close-white btn-sm ms-2" aria-label="Remove"
-                                @onclick="() => RemoveTag(t)">
-                        </button>
+                        <button class="btn-close btn-close-white btn-sm" @onclick="() => RemoveTag(t)"></button>
                     </span>
                 }
             </div>
 
-            <div class="mt-2">
-                <small class="text-muted">Suggestions:</small>
-                <div class="mt-1">
-                    @foreach (var s in tagSuggestions)
-                    {
-                        <button type="button"
-                                class="btn btn-sm btn-outline-secondary ms-1 mb-1"
-                                @onclick="() => AddSuggestedTag(s)">
-                            @s
-                        </button>
-                    }
-                </div>
+            <small class="text-muted">Suggestions:</small>
+            <div class="tag-suggestions">
+                @foreach (var s in tagSuggestions)
+                {
+                    <button type="button" class="tag-suggestion-btn" @onclick="() => AddSuggestedTag(s)">
+                        @s
+                    </button>
+                }
             </div>
+        </div>
+
+        <!-- LOCK ENTRY -->
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" @bind="lockEntry" />
+            <label class="form-check-label">🔒 Lock this entry</label>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" @onclick="Save">Save Changes</button>
+            <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            <button class="btn btn-outline-danger" @onclick="ClearContent">Clear</button>
         </div>
 
         <!-- PREVIEW -->
         @if (showPreview)
         {
-            <div class="card mt-3 p-3 preview-box" @key="entry.Content">
-                @((new MarkupString(MarkdownToHtml(entry.Content))))
-                @if(!string.IsNullOrWhiteSpace(entry.OptionalNote))
-                {
-                    <hr />
-                    <strong>Optional Notes:</strong>
-                    <p>@entry.OptionalNote</p>
-                }
+            <div class="card p-3 mt-3 preview-box">
+                @((MarkupString)entry.Content)
             </div>
         }
-
-        <!-- ACTIONS -->
-        <div class="mt-4 actions">
-            <button class="btn btn-primary" @onclick="Save">Save Changes</button>
-            <button class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
-        </div>
     </div>
 }
 
 @code {
-    [Parameter]
-    public Guid Id { get; set; }
+    [Parameter] public Guid Id { get; set; }
 
-    private JournalEntry? entry;
-    private string tagInput = string.Empty;
-    private bool showPreview = false;
+    private JournalEntry entry = new() { Tags = new(), SecondaryMoods = new() };
+    private DateTime selectedDate = DateTime.Today;
+    private string tagInput = "";
+    private bool showPreview;
+    private bool lockEntry = false;
 
-    private Dictionary<string, string> moods = new()
+    private string secondaryMood1 = "";
+    private string secondaryMood2 = "";
+    private string PrimaryMoodCategory = "";
+    private bool PrimaryMoodSelected => !string.IsNullOrEmpty(entry.PrimaryMood);
+
+    private Dictionary<string, Dictionary<string, string>> moodGroups = new()
     {
-        { "Happy", "😊 Happy" },
-        { "Sad", "😢 Sad" },
-        { "Anxious", "😰 Anxious" },
-        { "Angry", "😠 Angry" },
-        { "Relaxed", "😌 Relaxed" },
-        { "Excited", "🤩 Excited" },
-        { "Neutral", "😐 Neutral" },
-        { "Content", "🙂 Content" }
+        { "😊 Positive", new() {
+            { "Happy","😊 Happy" }, { "Excited","🤩 Excited" }, { "Relaxed","😌 Relaxed" },
+            { "Grateful","🙏 Grateful" }, { "Confident","💪 Confident" }
+        }},
+        { "😐 Neutral", new() {
+            { "Calm","😌 Calm" }, { "Thoughtful","🤔 Thoughtful" },
+            { "Curious","🧐 Curious" }, { "Nostalgic","🕰️ Nostalgic" }, { "Bored","😴 Bored" }
+        }},
+        { "😔 Negative", new() {
+            { "Sad","😢 Sad" }, { "Angry","😠 Angry" }, { "Stressed","😰 Stressed" },
+            { "Lonely","🥺 Lonely" }, { "Anxious","😟 Anxious" }
+        }}
     };
 
-    private List<string> tagSuggestions = new();
+    private List<string> tagSuggestions = new()
+    {
+        "Self Care","Exercise","Work","Shopping","Food","Career","Studies",
+        "Family","Friends","Relationships","Health","Fitness","Personal Growth",
+        "Hobbies","Travel","Nature","Finance","Birthday"
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        entry = await Storage.GetEntryAsync(Id);
-        if (entry != null)
+        var loaded = await Storage.GetEntryAsync(Id);
+        if (loaded != null)
         {
+            entry = loaded;
             entry.Tags ??= new List<string>();
             entry.SecondaryMoods ??= new List<string>();
-        }
+            selectedDate = entry.CreatedAt.Date;
 
-        var custom = await Storage.GetCustomMoodsAsync();
-        foreach (var m in custom)
+            secondaryMood1 = entry.SecondaryMoods.ElementAtOrDefault(0) ?? "";
+            secondaryMood2 = entry.SecondaryMoods.ElementAtOrDefault(1) ?? "";
+            lockEntry = entry.IsLocked;
+            PrimaryMoodCategory = GetMoodCategory(entry.PrimaryMood);
+        }
+    }
+
+    private void OnPrimaryMoodChanged(ChangeEventArgs e)
+    {
+        entry.PrimaryMood = e.Value?.ToString() ?? "";
+        PrimaryMoodCategory = GetMoodCategory(entry.PrimaryMood);
+
+        if (secondaryMood1 == entry.PrimaryMood) secondaryMood1 = "";
+        if (secondaryMood2 == entry.PrimaryMood) secondaryMood2 = "";
+        UpdateSecondaryMoods();
+    }
+
+    private void OnSecondaryMood1Changed(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        if (value == entry.PrimaryMood || value == secondaryMood2)
         {
-            if (!moods.ContainsKey(m)) moods[m] = m;
+            JS.InvokeVoidAsync("alert", "Cannot select duplicate or same as primary mood!");
+            secondaryMood1 = "";
         }
+        else secondaryMood1 = value;
 
-        tagSuggestions = await Storage.GetCustomTagsAsync();
+        UpdateSecondaryMoods();
     }
 
-    private void SetPrimaryMood(string mood)
+    private void OnSecondaryMood2Changed(ChangeEventArgs e)
     {
-        if (entry != null) entry.PrimaryMood = mood;
+        var value = e.Value?.ToString() ?? "";
+        if (value == entry.PrimaryMood || value == secondaryMood1)
+        {
+            JS.InvokeVoidAsync("alert", "Cannot select duplicate or same as primary mood!");
+            secondaryMood2 = "";
+        }
+        else secondaryMood2 = value;
+
+        UpdateSecondaryMoods();
     }
 
-    private void ToggleSecondaryMood(string mood)
+    private void UpdateSecondaryMoods()
     {
-        if (entry == null) return;
-        entry.SecondaryMoods ??= new List<string>();
-        if (entry.SecondaryMoods.Contains(mood)) entry.SecondaryMoods.Remove(mood);
-        else if (entry.SecondaryMoods.Count < 2) entry.SecondaryMoods.Add(mood);
+        entry.SecondaryMoods.Clear();
+        if (!string.IsNullOrEmpty(secondaryMood1)) entry.SecondaryMoods.Add(secondaryMood1);
+        if (!string.IsNullOrEmpty(secondaryMood2)) entry.SecondaryMoods.Add(secondaryMood2);
+    }
+
+    private string GetMoodCategory(string moodKey)
+    {
+        foreach (var group in moodGroups)
+            if (group.Value.ContainsKey(moodKey))
+                return group.Key;
+        return "";
+    }
+
+    private List<KeyValuePair<string,string>> GetMoodsForCategory(string category)
+    {
+        if (string.IsNullOrEmpty(category)) return new List<KeyValuePair<string,string>>();
+        return moodGroups.ContainsKey(category) ? moodGroups[category].ToList() : new List<KeyValuePair<string,string>>();
     }
 
     private void AddTag()
     {
-        if (string.IsNullOrWhiteSpace(tagInput) || entry == null) return;
-        var t = tagInput.Trim();
-        entry.Tags ??= new List<string>();
-        if (!entry.Tags.Contains(t)) entry.Tags.Add(t);
-        tagInput = string.Empty;
+        if (!string.IsNullOrWhiteSpace(tagInput) && !entry.Tags.Contains(tagInput))
+            entry.Tags.Add(tagInput.Trim());
+
+        tagInput = "";
     }
 
-    private void RemoveTag(string t)
-    {
-        entry?.Tags?.Remove(t);
-    }
-
-    private void AddSuggestedTag(string s)
-    {
-        entry ??= new JournalEntry();
-        entry.Tags ??= new List<string>();
-        if (!entry.Tags.Contains(s)) entry.Tags.Add(s);
-    }
-
-    private void OnTagInputKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter") AddTag();
-    }
-
-    private void TogglePreview()
-    {
-        showPreview = !showPreview;
-    }
-
-    private string MarkdownToHtml(string md)
-    {
-        if (string.IsNullOrWhiteSpace(md)) return string.Empty;
-        var html = System.Net.WebUtility.HtmlEncode(md);
-        html = html.Replace("\n", "<br />");
-        html = System.Text.RegularExpressions.Regex.Replace(html, "\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
-        html = System.Text.RegularExpressions.Regex.Replace(html, "\\*(.+?)\\*", "<em>$1</em>");
-        html = System.Text.RegularExpressions.Regex.Replace(html, @"\[(.+?)\]\((.+?)\)", "<a href=\"$2\" target=\"_blank\">$1</a>");
-        return html;
-    }
+    private void RemoveTag(string t) => entry.Tags.Remove(t);
+    private void AddSuggestedTag(string s) { if (!entry.Tags.Contains(s)) entry.Tags.Add(s); }
+    private void OnTagInputKeyDown(KeyboardEventArgs e) { if (e.Key == "Enter") AddTag(); }
+    private void TogglePreview() => showPreview = !showPreview;
 
     private async Task Save()
     {
-        if (entry == null) return;
+        if (string.IsNullOrEmpty(entry.PrimaryMood))
+        {
+            await JS.InvokeVoidAsync("alert", "Primary mood required");
+            return;
+        }
+
+        entry.CreatedAt = selectedDate.Date;
+        entry.UpdatedAt = DateTime.Now;
+
+        entry.IsLocked = lockEntry;
+        entry.LockedAt = lockEntry ? DateTime.Now : null;
+
         await Storage.UpdateEntryAsync(entry);
-        Nav.NavigateTo($"/entry/{entry.Id}");
+        Nav.NavigateTo("/view-entries");
     }
 
-    private void Cancel()
+    private void ClearContent()
     {
-        if (entry != null) Nav.NavigateTo($"/entry/{entry.Id}");
-        else Nav.NavigateTo("/view-entries");
+        entry = new JournalEntry { Tags = new(), SecondaryMoods = new() };
+        lockEntry = false;
+        tagInput = "";
+        secondaryMood1 = "";
+        secondaryMood2 = "";
+        PrimaryMoodCategory = "";
     }
+
+    private void Cancel() => Nav.NavigateTo("/view-entries");
 }
+
+<style>
+.page-title { margin-top: 30px; margin-bottom: 20px; font-size: 2rem; font-weight: 900; }
+.tag-chip { display: inline-flex; align-items: center; background: #2b6be6; color: white; padding: 6px 10px; border-radius: 20px; margin: 4px; font-size: .8rem; }
+.tag-suggestions { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 8px; }
+.tag-suggestion-btn { background: #f9fafb; border: 1px solid #d0d5dd; border-radius: 20px; padding: 6px 10px; font-size: .85rem; font-weight: 500; cursor: pointer; transition: all .2s ease; }
+.tag-suggestion-btn:hover { background: #e8f0ff; border-color: #2b6be6; color: #2b6be6; }
+.preview-box { background: #f5f5f5; border-radius: 8px; }
+</style>

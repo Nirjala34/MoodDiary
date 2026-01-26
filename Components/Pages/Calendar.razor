@@ -39,7 +39,10 @@ else
                     @if (has)
                     {
                         var dayEntries = entriesByDate[date.Date];
-                        var mood = dayEntries.First().PrimaryMood;
+                        var mood = dayEntries
+                            .OrderByDescending(e => e.CreatedAt)
+                            .First()
+                            .PrimaryMood;
 
                         <div class="entry-emoji">@GetMoodEmoji(mood)</div>
                         <div class="entry-count">@entryCount</div>
@@ -101,7 +104,7 @@ else
 
 .day-number {
     font-weight: bold;
-    color: #e0e0e0;
+    color: #c9c9c9;
     font-size: 1.1rem;
 }
 
@@ -140,23 +143,14 @@ else
 
         datesInMonth = new List<DateTime>();
 
-        // Previous month trailing days
         for (int i = startDayOfWeek; i > 0; i--)
-        {
             datesInMonth.Add(firstDay.AddDays(-i));
-        }
 
-        // Current month
         for (int d = 1; d <= daysInMonth; d++)
-        {
             datesInMonth.Add(new DateTime(currentMonth.Year, currentMonth.Month, d));
-        }
 
-        // Next month trailing days to fill last week
         while (datesInMonth.Count % 7 != 0)
-        {
             datesInMonth.Add(datesInMonth.Last().AddDays(1));
-        }
 
         entriesByDate = entries
             .GroupBy(e => e.CreatedAt.Date)
@@ -179,22 +173,33 @@ else
     {
         if (entriesByDate.ContainsKey(date.Date))
         {
-            // Navigate to first entry for this day
-            var entryId = entriesByDate[date.Date].First().Id;
+            var entryId = entriesByDate[date.Date]
+                .OrderByDescending(e => e.CreatedAt)
+                .First()
+                .Id;
+
             Nav.NavigateTo($"/entry/{entryId}");
         }
     }
 
+    //  ALL MOOD EMOJIS (FINAL)
     private string GetMoodEmoji(string mood) => mood switch
     {
         "Happy" => "😊",
-        "Sad" => "😢",
-        "Anxious" => "😰",
-        "Angry" => "😠",
-        "Relaxed" => "😌",
         "Excited" => "🤩",
-        "Neutral" => "😐",
-        "Content" => "🙂",
+        "Relaxed" => "😌",
+        "Grateful" => "🙏",
+        "Confident" => "💪",
+        "Calm" => "😐",
+        "Thoughtful" => "🤔",
+        "Curious" => "🧐",
+        "Nostalgic" => "🕰️",
+        "Bored" => "😴",
+        "Sad" => "😢",
+        "Angry" => "😠",
+        "Stressed" => "😰",
+        "Lonely" => "🥺",
+        "Anxious" => "😟",
         _ => ""
     };
 }

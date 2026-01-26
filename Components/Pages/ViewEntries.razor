@@ -1,75 +1,569 @@
 @page "/view-entries"
 @using JournalApp.Models
 @inject JournalApp.Services.IJournalStorageService Storage
+@inject JournalApp.Services.PdfExportService PdfService
+@inject PinService PinService
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<h3 style="margin-top: 30px; margin-bottom: 20px; font-size: 2rem; font-weight: 900; letter-spacing: 0.8px;">
-    View Journal Entries
-</h3>
+<h3 class="page-title">📔 Journal Entries</h3>
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="CreateNew">New Entry</button>
+<!-- 🔍 FILTER SECTION -->
+<div class="filter-card mb-3">
+    <div class="filter-grid">
+
+        <input type="date" class="full" @bind="startDate" />
+        <input type="date" class="full" @bind="endDate" />
+
+        <input type="text"
+               class="full"
+               placeholder="Search title or content"
+               @bind="searchText" />
+
+        <!-- MOOD FILTER (TEXT ONLY – EMOJI SHOWN SEPARATELY) -->
+        <select class="full" @bind="selectedMood">
+            <option value="">All Moods</option>
+
+            <optgroup label="😊 Positive">
+                @foreach (var mood in MoodCategories["Positive"])
+                {
+                    <option value="@mood">@mood</option>
+                }
+            </optgroup>
+
+            <optgroup label="😐 Neutral">
+                @foreach (var mood in MoodCategories["Neutral"])
+                {
+                    <option value="@mood">@mood</option>
+                }
+            </optgroup>
+
+            <optgroup label="😔 Negative">
+                @foreach (var mood in MoodCategories["Negative"])
+                {
+                    <option value="@mood">@mood</option>
+                }
+            </optgroup>
+        </select>
+
+        <!-- TAG FILTER -->
+        <select class="full" @bind="selectedTag">
+            <option value="">All Tags</option>
+            @foreach (var tag in AllTags)
+            {
+                <option value="@tag">@tag</option>
+            }
+        </select>
+
+    </div>
+
+    <div class="d-flex gap-2 mt-2 flex-wrap">
+    <button class="btn btn-primary" @onclick="ApplyFilter">Apply</button>
+    <button class="btn btn-secondary" @onclick="ResetFilter">Reset</button>
+
+    <button class="btn btn-success"
+            disabled="@(!FilteredEntries.Any())"
+            @onclick="ExportFiltered">
+        📄 Export Multiple Journal
+    </button>
 </div>
 
-@if (entries.Count == 0)
+
+    <!--  SELECTED MOOD DISPLAY WITH EMOJI -->
+    @if (!string.IsNullOrEmpty(selectedMood))
+    {
+        <div class="mt-2 fw-bold">
+            Selected Mood: @GetMoodEmoji(selectedMood) @selectedMood
+        </div>
+    }
+</div>
+
+@if (!FilteredEntries.Any())
 {
-    <div class="card p-4 text-center">
-        <h5>No journal entries yet</h5>
-        <p class="text-muted">
-            Start by adding your first journal entry — you can track moods, tags, and more.
-        </p>
-        <button class="btn btn-primary" @onclick="CreateNew">Create New Entry</button>
-    </div>
+    <p class="text-muted">No entries found.</p>
 }
 else
 {
-    <div class="list-group">
-        @foreach (var e in entries)
-        {
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <strong>@(e.Title ?? "Untitled")</strong>
-                        <div class="small text-muted">
-                            @e.CreatedAt.ToString("D") • @(e.PrimaryMood ?? "No mood")
-                        </div>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-link" @onclick="() => View(e.Id)">View</button>
-                        <button class="btn btn-sm btn-link" @onclick="() => Edit(e.Id)">Edit</button>
-                        <button class="btn btn-sm btn-link text-danger" @onclick="() => Delete(e.Id)">Delete</button>
-                    </div>
-                </div>
+    @foreach (var entry in PagedEntries)
+    {
+        <div class="card p-3 mb-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>
+                    @if (entry.IsLocked)
+                    {
+                        <span>🔒 Locked Entry</span>
+                    }
+                    else
+                    {
+                        @entry.Title
+                    }
+                </h5>
+                <small class="text-muted">
+                    @entry.CreatedAt.ToString("dd MMM yyyy")
+                </small>
             </div>
+
+            @if (!entry.IsLocked || unlockedEntries.Contains(entry.Id))
+            {
+                <p class="mt-2 fw-bold">
+                    @GetMoodEmoji(entry.PrimaryMood) @entry.PrimaryMood
+                </p>
+
+                <div style="white-space:pre-wrap">
+                    @((MarkupString)entry.Content.Replace("\n", "<br/>"))
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(entry.OptionalNote))
+                {
+                    <hr />
+                    <strong>Optional Note</strong>
+                    <p>@entry.OptionalNote</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted fst-italic mt-2">
+                    This journal entry is locked.
+                </p>
+            }
+
+            <!-- 🔘 ACTION BUTTONS -->
+            <div class="d-flex gap-2 mt-3 flex-wrap">
+
+                @if (entry.IsLocked)
+                {
+                    <button class="btn btn-sm btn-outline-primary"
+                            @onclick="() => RequestUnlock(entry)">
+                        🔓 Unlock
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-sm btn-outline-warning"
+                            @onclick="() => LockEntry(entry)">
+                        🔒 Lock
+                    </button>
+                }
+
+                <button class="btn btn-sm btn-outline-secondary"
+                        @onclick="() => Edit(entry)">
+                    Edit
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger"
+                        @onclick="() => Delete(entry.Id)">
+                    Delete
+                </button>
+
+                <button class="btn btn-sm btn-outline-success"
+                        @onclick="() => ExportSingleEntry(entry)">
+                    Export PDF
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- PAGINATION -->
+    <div class="pagination-ui">
+
+    <!-- LEFT: arrows + pages -->
+    <div class="page-numbers">
+
+        <!-- Prev -->
+        <button class="page-btn"
+                disabled="@(_page == 1)"
+                @onclick="Prev">
+            ‹
+        </button>
+
+        @foreach (var item in GetPageItems())
+        {
+            if (item.IsDots)
+            {
+                <span class="dots">…</span>
+            }
+            else
+            {
+                <button class="page-btn @(item.Page == _page ? "active" : "")"
+                        @onclick="() => _page = item.Page!.Value">
+                    @item.Page
+                </button>
+            }
         }
+
+        <!-- Next -->
+        <button class="page-btn"
+                disabled="@(_page == TotalPages)"
+                @onclick="Next">
+            ›
+        </button>
+
+    </div>
+
+    <!-- RIGHT: results + size -->
+    <div class="page-info">
+        <span>
+            Results:
+            @(((_page - 1) * PageSize) + 1)
+            -
+            @(Math.Min(_page * PageSize, FilteredEntries.Count))
+            of @FilteredEntries.Count
+        </span>
+
+        <div class="page-info">
+    <span>
+        Results:
+        @(((_page - 1) * PageSize) + 1)
+        -
+        @(Math.Min(_page * PageSize, FilteredEntries.Count))
+        of @FilteredEntries.Count
+    </span>
+
+    <select class="page-size"
+            value="@PageSize"
+            @onchange="OnPageSizeChanged">
+        @foreach (var size in PageSizeOptions)
+        {
+            <option value="@size">@size</option>
+        }
+    </select>
+</div>
+
+    </div>
+
+</div>
+
+}
+
+<!-- 🔐 PIN MODAL -->
+@if (showPinPrompt)
+{
+    <div class="pin-overlay">
+        <div class="pin-box">
+            <h5>🔐 Enter PIN</h5>
+
+            <input type="password"
+                   class="form-control mb-2"
+                   @bind="enteredPin"
+                   placeholder="Enter PIN" />
+
+            @if (!string.IsNullOrEmpty(pinError))
+            {
+                <div class="text-danger mb-2">@pinError</div>
+            }
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" @onclick="UnlockAndProceed">Unlock</button>
+                <button class="btn btn-secondary" @onclick="CancelUnlock">Cancel</button>
+            </div>
+        </div>
     </div>
 }
 
 @code {
-    private List<JournalEntry> entries = new();
+
+    private List<JournalEntry> allEntries = new();
+    private List<JournalEntry> FilteredEntries = new();
+    private HashSet<Guid> unlockedEntries = new();
+
+    private List<string> AllTags = new();
+
+    private DateTime? startDate;
+    private DateTime? endDate;
+    private string? searchText;
+    private string? selectedMood;
+    private string? selectedTag;
+
+    private JournalEntry? pendingEntry;
+    private bool navigateAfterUnlock;
+
+    private bool showPinPrompt;
+    private bool isExporting = false;
+    private string enteredPin = "";
+    private string pinError = "";
+    private List<JournalEntry> lockedEntriesToUnlock = new();
+private bool exportAfterUnlock = false;
+
+    private int _page = 1;
+    private int PageSize = 5;
+
+private readonly int[] PageSizeOptions = { 5, 10, 25, 50 };
+
 
     protected override async Task OnInitializedAsync()
     {
-        entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
+        allEntries = await Storage.GetEntriesAsync() ?? new();
+        UpdateAllTags();
+        ApplyFilter();
     }
 
-    private void CreateNew() => Nav.NavigateTo("/add-entry");
-    private void View(Guid id) => Nav.NavigateTo($"/entry/{id}");
-    private void Edit(Guid id) => Nav.NavigateTo($"/edit/{id}");
+    private void UpdateAllTags()
+    {
+        AllTags = allEntries
+            .SelectMany(e => e.Tags ?? new())
+            .Distinct()
+            .OrderBy(t => t)
+            .ToList();
+    }
+
+    private void ApplyFilter()
+    {
+        var query = allEntries.AsEnumerable();
+
+        if (startDate.HasValue)
+            query = query.Where(e => e.CreatedAt.Date >= startDate.Value.Date);
+
+        if (endDate.HasValue)
+            query = query.Where(e => e.CreatedAt.Date <= endDate.Value.Date);
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+            query = query.Where(e =>
+                (!string.IsNullOrEmpty(e.Title) &&
+                 e.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                ||
+                (!string.IsNullOrEmpty(e.Content) &&
+                 e.Content.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
+
+        if (!string.IsNullOrWhiteSpace(selectedMood))
+            query = query.Where(e => e.PrimaryMood == selectedMood);
+
+        if (!string.IsNullOrWhiteSpace(selectedTag))
+            query = query.Where(e =>
+                e.Tags != null &&
+                e.Tags.Any(t => t.Contains(selectedTag, StringComparison.OrdinalIgnoreCase)));
+
+        FilteredEntries = query
+            .OrderByDescending(e => e.CreatedAt)
+            .ToList();
+
+        _page = 1;
+    }
+    private List<PageItem> GetPageItems()
+{
+    var items = new List<PageItem>();
+
+    if (TotalPages <= 6)
+    {
+        for (int i = 1; i <= TotalPages; i++)
+            items.Add(new PageItem(i, false));
+
+        return items;
+    }
+
+    items.Add(new PageItem(1, false));
+
+    if (_page > 3)
+        items.Add(new PageItem(null, true)); // dots
+
+    for (int i = Math.Max(2, _page - 1); i <= Math.Min(TotalPages - 1, _page + 1); i++)
+        items.Add(new PageItem(i, false));
+
+    if (_page < TotalPages - 2)
+        items.Add(new PageItem(null, true)); // dots
+
+    items.Add(new PageItem(TotalPages, false));
+
+    return items;
+}
+private class PageItem
+{
+    public int? Page { get; set; }
+    public bool IsDots { get; set; }
+
+    public PageItem(int? page, bool isDots)
+    {
+        Page = page;
+        IsDots = isDots;
+    }
+}
+private void OnPageSizeChanged(ChangeEventArgs e)
+{
+    PageSize = int.Parse(e.Value!.ToString()!);
+    _page = 1; // go back to first page
+}
+
+    private void ResetFilter()
+    {
+        startDate = endDate = null;
+        searchText = selectedMood = selectedTag = null;
+        ApplyFilter();
+    }
+
+    private int TotalPages =>
+        (int)Math.Ceiling(FilteredEntries.Count / (double)PageSize);
+
+    private List<JournalEntry> PagedEntries =>
+        FilteredEntries.Skip((_page - 1) * PageSize).Take(PageSize).ToList();
+
+    private void Next() => _page++;
+    private void Prev() => _page--;
+
+    private void Edit(JournalEntry entry)
+    {
+        if (entry.IsLocked && !unlockedEntries.Contains(entry.Id))
+        {
+            pendingEntry = entry;
+            navigateAfterUnlock = true;
+            showPinPrompt = true;
+            enteredPin = "";
+            pinError = "";
+        }
+        else
+        {
+            Nav.NavigateTo($"/edit/{entry.Id}");
+        }
+    }
 
     private async Task Delete(Guid id)
     {
-        if (!await JSConfirm("Delete this entry?")) return;
-
+        if (!await JS.InvokeAsync<bool>("confirm", "Delete this entry?")) return;
         await Storage.DeleteEntryAsync(id);
-
-        entries = await Storage.GetEntriesAsync() ?? new List<JournalEntry>();
-        StateHasChanged();
+        allEntries = await Storage.GetEntriesAsync() ?? new();
+        UpdateAllTags();
+        ApplyFilter();
     }
 
-    private async Task<bool> JSConfirm(string message)
+    private async Task LockEntry(JournalEntry entry)
     {
-        return await JS.InvokeAsync<bool>("confirm", message);
+        entry.IsLocked = true;
+        await Storage.UpdateEntryAsync(entry);
     }
+
+    private void RequestUnlock(JournalEntry entry)
+    {
+        pendingEntry = entry;
+        navigateAfterUnlock = false;
+        showPinPrompt = true;
+        enteredPin = "";
+        pinError = "";
+    }
+
+    private async Task UnlockAndProceed()
+    {
+        if (!await PinService.ValidatePinAsync(enteredPin))
+        {
+            pinError = "Incorrect PIN";
+            return;
+        }
+
+        pendingEntry!.IsLocked = false;
+        await Storage.UpdateEntryAsync(pendingEntry);
+        unlockedEntries.Add(pendingEntry.Id);
+        showPinPrompt = false;
+
+        if (navigateAfterUnlock)
+            Nav.NavigateTo($"/edit/{pendingEntry.Id}");
+    }
+
+    private void CancelUnlock()
+    {
+        showPinPrompt = false;
+        enteredPin = "";
+        pinError = "";
+        pendingEntry = null;
+        navigateAfterUnlock = false;
+    }
+
+    private async Task ExportSingleEntry(JournalEntry entry)
+{
+    if (entry.IsLocked && !unlockedEntries.Contains(entry.Id))
+    {
+        pendingEntry = entry;
+        exportAfterUnlock = true; // mark that export should happen after unlocking
+        showPinPrompt = true;
+        enteredPin = "";
+        pinError = "";
+        return; // wait for PIN
+    }
+
+    await DoExportSingleEntry(entry);
 }
+
+private async Task DoExportSingleEntry(JournalEntry entry)
+{
+    var pdf = await PdfService.ExportJournalEntriesAsync(entry.CreatedAt, entry.CreatedAt);
+
+    await JS.InvokeVoidAsync(
+        "downloadFile",
+        $"Journal_{entry.CreatedAt:yyyyMMdd}.pdf",
+        "application/pdf",
+        pdf);
+}
+
+    private async Task ExportFiltered()
+{
+    if (!FilteredEntries.Any())
+        return;
+
+    // determine date range
+    var from = startDate ?? FilteredEntries.Min(e => e.CreatedAt);
+    var to   = endDate   ?? FilteredEntries.Max(e => e.CreatedAt);
+
+    var pdfBytes = await PdfService.ExportJournalEntriesAsync(from, to);
+
+    await JS.InvokeVoidAsync(
+        "downloadFile",
+        $"Journal_Filtered_{from:yyyyMMdd}_{to:yyyyMMdd}.pdf",
+        "application/pdf",
+        pdfBytes);
+}
+
+
+    private readonly Dictionary<string, List<string>> MoodCategories = new()
+    {
+        ["Positive"] = new() { "Happy", "Excited", "Relaxed", "Grateful", "Confident" },
+        ["Neutral"]  = new() { "Calm", "Thoughtful", "Curious", "Nostalgic", "Bored" },
+        ["Negative"] = new() { "Sad", "Angry", "Stressed", "Lonely", "Anxious" }
+    };
+
+    private readonly Dictionary<string, string> MoodEmojis = new()
+    {
+        { "Happy", "😊" }, { "Excited", "🤩" }, { "Relaxed", "😌" },
+        { "Grateful", "🙏" }, { "Confident", "💪" },
+
+        { "Calm", "😐" }, { "Thoughtful", "🤔" }, { "Curious", "🧐" },
+        { "Nostalgic", "🕰️" }, { "Bored", "🥱" },
+
+        { "Sad", "😢" }, { "Angry", "😠" }, { "Stressed", "😣" },
+        { "Lonely", "🥺" }, { "Anxious", "😰" }
+    };
+
+    private string GetMoodEmoji(string? mood)
+        => mood != null && MoodEmojis.TryGetValue(mood, out var e) ? e : "🙂";
+}
+
+<style>
+.page-title { margin: 30px 0 20px; font-size: 2rem; font-weight: 900; }
+
+.filter-card {
+    padding: 10px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background-color: #f9fafb;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.full { width: 100%; }
+
+.pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pin-box {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 300px;
+}
+</style>

@@ -1,50 +1,51 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using JournalApp.Models;
-
-namespace JournalApp.Services
+public class UserService
 {
-    public class UserService
+    public User? CurrentUser { get; private set; }
+    public bool IsLoggedIn => CurrentUser != null;
+
+    private readonly List<User> users = new();
+
+    // REGISTER (NO AUTO LOGIN)
+    public async Task<bool> RegisterAsync(string name, string email, string password)
     {
-        private readonly List<User> _users = new();
+        // Check if email already exists
+        if (users.Any(u => u.Email == email))
+            return false;
 
-        private User? _currentUser;
-
-        public Task<bool> RegisterAsync(string username, string email, string password)
+        users.Add(new User
         {
-            if (_users.Any(u => u.Email == email))
-                return Task.FromResult(false); // email already exists
+            Name = name,
+            Email = email,
+            Password = password
+        });
 
-            var user = new User
-            {
-                Username = username,
-                Email = email,
-                Password = password // NOTE: hash in production
-            };
-
-            _users.Add(user);
-            _currentUser = user;
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> LoginAsync(string email, string password)
-        {
-            var user = _users.FirstOrDefault(u => u.Email == email && u.Password == password);
-            if (user != null)
-            {
-                _currentUser = user;
-                return Task.FromResult(true);
-            }
-            return Task.FromResult(false);
-        }
-
-        public void Logout()
-        {
-            _currentUser = null;
-        }
-
-        public User? GetCurrentUser() => _currentUser;
+        return true; // ONLY register
     }
+
+    // LOGIN
+    public async Task<bool> LoginAsync(string email, string password)
+    {
+        var user = users.FirstOrDefault(u =>
+            u.Email == email && u.Password == password);
+
+        if (user == null)
+            return false;
+
+        CurrentUser = user; //  login happens HERE
+        return true;
+    }
+
+    // LOGOUT
+    public void Logout()
+    {
+        CurrentUser = null;
+    }
+}
+
+// Simple User model
+public class User
+{
+    public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Password { get; set; } = "";
 }

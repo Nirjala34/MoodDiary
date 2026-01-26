@@ -25,6 +25,7 @@ namespace JournalApp.Services
             EnsureSettings();
         }
 
+        // ------------------- CORE FILE METHODS -------------------
         private async Task<List<JournalEntry>> ReadAllAsync()
         {
             try
@@ -52,9 +53,10 @@ namespace JournalApp.Services
             await JsonSerializer.SerializeAsync(stream, entries, _jsonOptions);
         }
 
+        // ------------------- JOURNAL OPERATIONS -------------------
         public async Task<List<JournalEntry>> GetEntriesAsync()
         {
-            return (await ReadAllAsync()).OrderByDescending(e => e.Date).ToList();
+            return (await ReadAllAsync()).OrderByDescending(e => e.CreatedAt).ToList();
         }
 
         public async Task<JournalEntry?> GetEntryAsync(Guid id)
@@ -66,6 +68,11 @@ namespace JournalApp.Services
         public async Task SaveEntryAsync(JournalEntry entry)
         {
             var entries = await ReadAllAsync();
+
+            // ✅ Prevent more than 1 journal per day
+            if (entries.Any(e => e.CreatedAt.Date == entry.CreatedAt.Date))
+                throw new InvalidOperationException("You can only write one journal per day.");
+
             entry.CreatedAt = DateTime.UtcNow;
             entry.UpdatedAt = DateTime.UtcNow;
             entries.Add(entry);
@@ -91,6 +98,14 @@ namespace JournalApp.Services
             await WriteAllAsync(entries);
         }
 
+        // ✅ Check if a journal exists for a specific date
+        public async Task<bool> HasJournalForDateAsync(DateTime date)
+        {
+            var entries = await ReadAllAsync();
+            return entries.Any(e => e.CreatedAt.Date == date.Date);
+        }
+
+        // ------------------- IMPORT / EXPORT -------------------
         public async Task ExportAsync(string filePath)
         {
             var entries = await ReadAllAsync();
@@ -107,7 +122,6 @@ namespace JournalApp.Services
             var imported = await JsonSerializer.DeserializeAsync<List<JournalEntry>>(stream, _jsonOptions);
             if (imported == null) return;
 
-            // Merge: keep existing entries and add any new ones (by Id)
             var existing = await ReadAllAsync();
             var existingIds = existing.Select(e => e.Id).ToHashSet();
             var toAdd = imported.Where(e => !existingIds.Contains(e.Id)).ToList();
@@ -120,7 +134,7 @@ namespace JournalApp.Services
             await WriteAllAsync(new List<JournalEntry>());
         }
 
-        // Settings management
+        // ------------------- SETTINGS -------------------
         private class SettingsData
         {
             public List<string> Tags { get; set; } = new();
@@ -136,7 +150,11 @@ namespace JournalApp.Services
                     var defaults = new SettingsData
                     {
                         Tags = new List<string> { "Self-Care", "Exercise", "Work", "Family", "Friends", "Travel", "Learning" },
-                        Moods = new List<string> { "Happy", "Sad", "Anxious", "Angry", "Relaxed", "Excited", "Neutral", "Content" }
+                        Moods = new List<string> { 
+                            "Happy","Excited","Relaxed","Grateful","Confident",
+                            "Calm","Thoughtful","Curious","Nostalgic","Bored",
+                            "Sad","Angry","Stressed","Lonely","Anxious"
+                        }
                     };
                     var dir = Path.GetDirectoryName(_settingsPath) ?? FileSystem.AppDataDirectory;
                     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -156,10 +174,7 @@ namespace JournalApp.Services
                 var data = JsonSerializer.Deserialize<SettingsData>(json, _jsonOptions);
                 return data ?? new SettingsData();
             }
-            catch
-            {
-                return new SettingsData();
-            }
+            catch { return new SettingsData(); }
         }
 
         private void WriteSettings(SettingsData data)
@@ -212,6 +227,5 @@ namespace JournalApp.Services
             WriteSettings(s);
             return Task.CompletedTask;
         }
-
     }
 }
