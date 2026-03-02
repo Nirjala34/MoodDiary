@@ -1,4 +1,4 @@
-MoodDiary — Personal Journal & Mood Tracker Built with .NET 9, MAUI Blazor, SQLite
+MoodDiary : Personal Journal & Mood Tracker Built with .NET 9, MAUI Blazor, SQLite
 
 A privacy-first desktop journaling app featuring:
 
