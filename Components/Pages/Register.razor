@@ -5,37 +5,38 @@
 <div class="auth-page">
     <div class="auth-card">
 
-        <h4 class="text-center mb-4">Register</h4>
+        <h3 class="text-center">Create Account</h3>
+        <p class="text-secondary mb-5">Join our community and start your mindfulness journey today.</p>
 
-        <div class="mb-3">
-            <label class="form-label">Name</label>
-            <InputText @bind-Value="name" class="form-control" placeholder="Enter your name" />
+        <div class="form-group mb-4">
+            <label class="form-label fw-bold small text-secondary">FULL NAME</label>
+            <InputText @bind-Value="name" class="form-control" placeholder="John Doe" />
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <InputText type="email" @bind-Value="email" class="form-control" placeholder="Enter your email" />
+        <div class="form-group mb-4">
+            <label class="form-label fw-bold small text-secondary">EMAIL ADDRESS</label>
+            <InputText type="email" @bind-Value="email" class="form-control" placeholder="example@email.com" />
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Password</label>
-            <InputText type="password" @bind-Value="password" class="form-control" placeholder="Enter password" />
+        <div class="form-group mb-4">
+            <label class="form-label fw-bold small text-secondary">PASSWORD</label>
+            <InputText type="password" @bind-Value="password" class="form-control" placeholder="••••••••" />
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Confirm Password</label>
-            <InputText type="password" @bind-Value="confirmPassword" class="form-control" placeholder="Confirm password" />
+        <div class="form-group mb-4">
+            <label class="form-label fw-bold small text-secondary">CONFIRM PASSWORD</label>
+            <InputText type="password" @bind-Value="confirmPassword" class="form-control" placeholder="••••••••" />
         </div>
 
         @if (!string.IsNullOrEmpty(error))
         {
-            <div class="text-danger mb-3">@error</div>
+            <div class="alert alert-danger py-2 small mb-4">@error</div>
         }
 
-        <button class="btn btn-primary w-100 mb-3" @onclick="RegisterUser">Register</button>
+        <button class="btn btn-primary w-100 mb-4" @onclick="RegisterUser">Create Account</button>
 
         <div class="text-center text-muted">
-            Already have an account? <a href="/login">Login</a>
+            Already have an account? <a href="/login" class="text-primary fw-bold">Sign In</a>
         </div>
     </div>
 </div>
@@ -73,74 +74,3 @@
             error = "Registration failed! Email might already be in use.";
     }
 }
-
-
-<style>
-.auth-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 90vh;
-    background: linear-gradient(135deg, #0f1820, #1b2430);
-}
-
-.auth-card {
-    background-color: #1b2430;
-    padding: 2.5rem;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-    color: #fff;
-}
-
-.auth-card h2 {
-    font-weight: 700;
-    color: #2b6be6;
-}
-.auth-card h4 {
-    color: #fff;
-    font-weight: 500;
-}
-
-.auth-card .form-control {
-    background-color:#ededed;
-    color: #000000;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 10px;
-    transition: all 0.2s;
-}
-.auth-card .form-control:focus {
-    border-color: #2b6be6;
-    box-shadow: 0 0 5px rgba(43,107,230,0.5);
-    outline: none;
-}
-
-.auth-card .btn-primary {
-    background-color: #2b6be6;
-    border-color: #2b6be6;
-    font-weight: 600;
-    border-radius: 8px;
-    padding: 0.6rem;
-    transition: all 0.2s;
-}
-.auth-card .btn-primary:hover {
-    background-color: #1d54c4;
-    border-color: #1d54c4;
-}
-.user-greeting {
-    color: #ffffff;
-    font-weight: 500;
-    margin-top: 1rem;
-}
-.auth-card a {
-    color: #2b6be6;
-    font-weight: 500;
-}
-.auth-card a:hover {
-    text-decoration: underline;
-}
-</style>
-
-

@@ -41,11 +41,19 @@ namespace JournalApp.Services
                     MoodComment TEXT,
                     TagsJson TEXT,
                     CreatedAt TEXT,
-                    UpdatedAt TEXT
+                    UpdatedAt TEXT,
+                    IsLocked INTEGER DEFAULT 0,
+                    LockedAt TEXT,
+                    OptionalNote TEXT
                 );";
             cmd.ExecuteNonQuery();
 
-            // Settings table (stores JSON values for keys like 'tags' and 'moods')
+            // Safely add columns if they don't exist (for existing users)
+            AddColumnIfMissing(conn, "IsLocked", "INTEGER DEFAULT 0");
+            AddColumnIfMissing(conn, "LockedAt", "TEXT");
+            AddColumnIfMissing(conn, "OptionalNote", "TEXT");
+
+            // Settings table
             using var scmd = conn.CreateCommand();
             scmd.CommandText = @"
                 CREATE TABLE IF NOT EXISTS settings (
@@ -53,6 +61,23 @@ namespace JournalApp.Services
                     Value TEXT
                 );";
             scmd.ExecuteNonQuery();
+        }
+
+        private void AddColumnIfMissing(SqliteConnection conn, string columnName, string columnType)
+        {
+            try
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $"SELECT count(*) FROM pragma_table_info('entries') WHERE name = '{columnName}'";
+                var count = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+                if (count == 0)
+                {
+                    using var alterCmd = conn.CreateCommand();
+                    alterCmd.CommandText = $"ALTER TABLE entries ADD COLUMN {columnName} {columnType}";
+                    alterCmd.ExecuteNonQuery();
+                }
+            }
+            catch { /* ignore migration errors for single columns */ }
         }
 
         private SqliteConnection GetConnection() => new SqliteConnection($"Data Source={_dbPath}");
@@ -114,8 +139,8 @@ namespace JournalApp.Services
             conn.Open();
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
-                INSERT OR REPLACE INTO entries (Id, Date, Title, Content, PrimaryMood, SecondaryMoodsJson, MoodComment, TagsJson, CreatedAt, UpdatedAt)
-                VALUES ($id, $date, $title, $content, $primary, $secondaryJson, $moodComment, $tagsJson, $created, $updated);";
+                INSERT OR REPLACE INTO entries (Id, Date, Title, Content, PrimaryMood, SecondaryMoodsJson, MoodComment, TagsJson, CreatedAt, UpdatedAt, IsLocked, LockedAt, OptionalNote)
+                VALUES ($id, $date, $title, $content, $primary, $secondaryJson, $moodComment, $tagsJson, $created, $updated, $isLocked, $lockedAt, $optionalNote);";
             cmd.Parameters.AddWithValue("$id", entry.Id.ToString());
             cmd.Parameters.AddWithValue("$date", entry.Date.ToString("o"));
             cmd.Parameters.AddWithValue("$title", entry.Title ?? string.Empty);
@@ -126,6 +151,9 @@ namespace JournalApp.Services
             cmd.Parameters.AddWithValue("$tagsJson", JsonSerializer.Serialize(entry.Tags ?? new List<string>(), _jsonOptions));
             cmd.Parameters.AddWithValue("$created", entry.CreatedAt.ToString("o"));
             cmd.Parameters.AddWithValue("$updated", entry.UpdatedAt.ToString("o"));
+            cmd.Parameters.AddWithValue("$isLocked", entry.IsLocked ? 1 : 0);
+            cmd.Parameters.AddWithValue("$lockedAt", entry.LockedAt?.ToString("o") ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$optionalNote", entry.OptionalNote ?? string.Empty);
             cmd.ExecuteNonQuery();
         }
 
@@ -158,10 +186,20 @@ namespace JournalApp.Services
 
         public async Task SaveEntryAsync(JournalEntry entry)
         {
-            entry.CreatedAt = DateTime.UtcNow;
             entry.UpdatedAt = DateTime.UtcNow;
             InsertEntry(entry);
             await Task.CompletedTask;
+        }
+
+        public async Task<bool> HasJournalForDateAsync(DateTime date)
+        {
+            using var conn = GetConnection();
+            await conn.OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(1) FROM entries WHERE substr(Date, 1, 10) = $date";
+            cmd.Parameters.AddWithValue("$date", date.ToString("yyyy-MM-dd"));
+            var count = Convert.ToInt32(await cmd.ExecuteScalarAsync() ?? 0);
+            return count > 0;
         }
 
         public async Task UpdateEntryAsync(JournalEntry entry)
@@ -179,7 +217,10 @@ namespace JournalApp.Services
                     SecondaryMoodsJson = $secondaryJson,
                     MoodComment = $moodComment,
                     TagsJson = $tagsJson,
-                    UpdatedAt = $updated
+                    UpdatedAt = $updated,
+                    IsLocked = $isLocked,
+                    LockedAt = $lockedAt,
+                    OptionalNote = $optionalNote
                 WHERE Id = $id;";
             cmd.Parameters.AddWithValue("$id", entry.Id.ToString());
             cmd.Parameters.AddWithValue("$date", entry.Date.ToString("o"));
@@ -190,6 +231,9 @@ namespace JournalApp.Services
             cmd.Parameters.AddWithValue("$moodComment", entry.MoodComment ?? string.Empty);
             cmd.Parameters.AddWithValue("$tagsJson", JsonSerializer.Serialize(entry.Tags ?? new List<string>(), _jsonOptions));
             cmd.Parameters.AddWithValue("$updated", entry.UpdatedAt.ToString("o"));
+            cmd.Parameters.AddWithValue("$isLocked", entry.IsLocked ? 1 : 0);
+            cmd.Parameters.AddWithValue("$lockedAt", entry.LockedAt?.ToString("o") ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("$optionalNote", entry.OptionalNote ?? string.Empty);
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -284,6 +328,12 @@ namespace JournalApp.Services
             return Task.CompletedTask;
         }
 
+        public Task SaveTagsAsync(List<string> tags)
+        {
+            WriteSettings("tags", JsonSerializer.Serialize(tags, _jsonOptions));
+            return Task.CompletedTask;
+        }
+
         public Task<List<string>> GetCustomMoodsAsync()
         {
             var json = ReadSettings("moods");
@@ -311,6 +361,12 @@ namespace JournalApp.Services
             return Task.CompletedTask;
         }
 
+        public Task SaveMoodsAsync(List<string> moods)
+        {
+            WriteSettings("moods", JsonSerializer.Serialize(moods, _jsonOptions));
+            return Task.CompletedTask;
+        }
+
         // Private helper class for migrating legacy settings.json
         private class SettingsData
         {
@@ -321,32 +377,63 @@ namespace JournalApp.Services
         // Helper to read a single entry from reader
         private JournalEntry ReadEntry(SqliteDataReader reader)
         {
-            var id = Guid.Parse(reader.GetString(reader.GetOrdinal("Id")));
-            var date = DateTime.Parse(reader.GetString(reader.GetOrdinal("Date")));
-            var title = reader.GetString(reader.GetOrdinal("Title"));
-            var content = reader.GetString(reader.GetOrdinal("Content"));
-            var primary = reader.GetString(reader.GetOrdinal("PrimaryMood"));
-            var secondaryJson = reader.GetString(reader.GetOrdinal("SecondaryMoodsJson"));
-            var moods = JsonSerializer.Deserialize<List<string>>(secondaryJson, _jsonOptions) ?? new List<string>();
-            var moodComment = reader.GetString(reader.GetOrdinal("MoodComment"));
-            var tagsJson = reader.GetString(reader.GetOrdinal("TagsJson"));
-            var tags = JsonSerializer.Deserialize<List<string>>(tagsJson, _jsonOptions) ?? new List<string>();
-            var created = DateTime.Parse(reader.GetString(reader.GetOrdinal("CreatedAt")));
-            var updated = DateTime.Parse(reader.GetString(reader.GetOrdinal("UpdatedAt")));
-
-            return new JournalEntry
+            try 
             {
-                Id = id,
-                Date = date,
-                Title = title,
-                Content = content,
-                PrimaryMood = primary,
-                SecondaryMoods = moods,
-                MoodComment = moodComment,
-                Tags = tags,
-                CreatedAt = created,
-                UpdatedAt = updated
-            };
+                var idStr = reader.IsDBNull(reader.GetOrdinal("Id")) ? Guid.NewGuid().ToString() : reader.GetString(reader.GetOrdinal("Id"));
+                var id = Guid.Parse(idStr);
+                
+                var dateStr = reader.IsDBNull(reader.GetOrdinal("Date")) ? DateTime.UtcNow.ToString("o") : reader.GetString(reader.GetOrdinal("Date"));
+                var date = DateTime.Parse(dateStr);
+                
+                var title = reader.IsDBNull(reader.GetOrdinal("Title")) ? string.Empty : reader.GetString(reader.GetOrdinal("Title"));
+                var content = reader.IsDBNull(reader.GetOrdinal("Content")) ? string.Empty : reader.GetString(reader.GetOrdinal("Content"));
+                var primary = reader.IsDBNull(reader.GetOrdinal("PrimaryMood")) ? string.Empty : reader.GetString(reader.GetOrdinal("PrimaryMood"));
+                
+                var secondaryJson = reader.IsDBNull(reader.GetOrdinal("SecondaryMoodsJson")) ? "[]" : reader.GetString(reader.GetOrdinal("SecondaryMoodsJson"));
+                var moods = JsonSerializer.Deserialize<List<string>>(secondaryJson, _jsonOptions) ?? new List<string>();
+                
+                var moodComment = reader.IsDBNull(reader.GetOrdinal("MoodComment")) ? string.Empty : reader.GetString(reader.GetOrdinal("MoodComment"));
+                
+                var tagsJson = reader.IsDBNull(reader.GetOrdinal("TagsJson")) ? "[]" : reader.GetString(reader.GetOrdinal("TagsJson"));
+                var tags = JsonSerializer.Deserialize<List<string>>(tagsJson, _jsonOptions) ?? new List<string>();
+                
+                var createdStr = reader.IsDBNull(reader.GetOrdinal("CreatedAt")) ? DateTime.UtcNow.ToString("o") : reader.GetString(reader.GetOrdinal("CreatedAt"));
+                var created = DateTime.Parse(createdStr);
+                
+                var updatedStr = reader.IsDBNull(reader.GetOrdinal("UpdatedAt")) ? DateTime.UtcNow.ToString("o") : reader.GetString(reader.GetOrdinal("UpdatedAt"));
+                var updated = DateTime.Parse(updatedStr);
+
+                var isLocked = reader.IsDBNull(reader.GetOrdinal("IsLocked")) ? 0 : reader.GetInt32(reader.GetOrdinal("IsLocked"));
+                
+                DateTime? lockedAt = null;
+                if (!reader.IsDBNull(reader.GetOrdinal("LockedAt")))
+                {
+                    lockedAt = DateTime.Parse(reader.GetString(reader.GetOrdinal("LockedAt")));
+                }
+
+                var optionalNote = reader.IsDBNull(reader.GetOrdinal("OptionalNote")) ? string.Empty : reader.GetString(reader.GetOrdinal("OptionalNote"));
+
+                return new JournalEntry
+                {
+                    Id = id,
+                    Date = date,
+                    Title = title,
+                    Content = content,
+                    PrimaryMood = primary,
+                    SecondaryMoods = moods,
+                    MoodComment = moodComment,
+                    Tags = tags,
+                    CreatedAt = created,
+                    UpdatedAt = updated,
+                    IsLocked = isLocked == 1,
+                    LockedAt = lockedAt,
+                    OptionalNote = optionalNote
+                };
+            }
+            catch
+            {
+                return new JournalEntry { Id = Guid.NewGuid(), Date = DateTime.UtcNow, Title = "Error Reading Entry" };
+            }
         }
 
         // Utility for tests / debugging

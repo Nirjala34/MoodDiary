@@ -18,44 +18,35 @@
     </div>
 
     <!-- TOP STATS -->
-    <div class="row mb-3">
-        <div class="col-6 col-md-2">
-            <div class="card p-3 text-center">
-                <h6>Total Entries</h6>
-                <div class="display-6 fw-bold">@((entries?.Count ?? 0))</div>
-            </div>
+    <div class="dashboard-stats-row mb-3">
+        <div class="dash-stat-card">
+            <div class="dash-stat-label">Total Entries</div>
+            <div class="dash-stat-value">@((entries?.Count ?? 0))</div>
+            <div class="dash-stat-sub">entries</div>
         </div>
 
-        <div class="col-6 col-md-2">
-            <div class="card p-3 text-center">
-                <h6>Current Streak</h6>
-                <div class="display-6 fw-bold">@currentStreak</div>
-                <div class="small text-muted">days in a row</div>
-            </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-label">Current Streak</div>
+            <div class="dash-stat-value">@currentStreak</div>
+            <div class="dash-stat-sub">days in a row</div>
         </div>
 
-        <div class="col-6 col-md-2">
-            <div class="card p-3 text-center">
-                <h6>Avg Words</h6>
-                <div class="display-6 fw-bold">@averageWordCount</div>
-            </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-label">Avg Words</div>
+            <div class="dash-stat-value">@averageWordCount</div>
+            <div class="dash-stat-sub">per entry</div>
         </div>
 
-        <div class="col-6 col-md-2">
-            <div class="card p-3 text-center">
-                <h6>Most Frequent Mood</h6>
-                <div class="display-6 fw-bold">@mostFrequentMoodEmoji</div>
-                <div class="small">@mostFrequentMood</div>
-            </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-label">Top Mood</div>
+            <div class="dash-stat-value" style="font-size:2rem;">@mostFrequentMoodEmoji</div>
+            <div class="dash-stat-sub">@mostFrequentMood</div>
         </div>
 
-        <!-- LOCKED ENTRIES ADDED -->
-        <div class="col-6 col-md-2">
-            <div class="card p-3 text-center">
-                <h6>Locked Entries 🔒</h6>
-                <div class="display-6 fw-bold text-warning">@lockedEntriesCount</div>
-                <div class="small text-muted">protected</div>
-            </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-label">Locked 🔒</div>
+            <div class="dash-stat-value" style="color:#f59e0b;">@lockedEntriesCount</div>
+            <div class="dash-stat-sub">protected</div>
         </div>
     </div>
 
@@ -146,14 +137,6 @@
     </div>
 </div>
 
-<style>
-.dashboard { padding:1rem; background-color: var(--bg-color); color: var(--text-color);}
-.card { background-color: var(--card-bg); border:1px solid var(--card-border); padding:1rem; margin-bottom:1rem;}
-.text-muted { color: var(--muted-color);}
-.mood-emoji { font-size:1.5rem; display:block; }
-.badge { transition:all 0.3s ease; }
-:root { --bg-color:#0f1820; --card-bg:#1a1f2b; --card-border:#333; --text-color:#fff; --muted-color:#999; --tag-bg:#2b6be6; }
-</style>
 
 @code {
     private List<JournalEntry> entries = new();
@@ -259,6 +242,6 @@
             .OrderBy(e => e.CreatedAt.Date)
             .Select(e => (e.CreatedAt.Date, e.PrimaryMood))
             .ToList();
+ 
     }
 }
-b 

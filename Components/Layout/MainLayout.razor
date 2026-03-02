@@ -1,186 +1,51 @@
 ﻿@inherits LayoutComponentBase
-@inject UserService UserService
-@inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<div class="page @ThemeClass">
-    <div class="sidebar">
-
-        <!-- Brand -->
+<div class="page @(isCollapsed ? "sidebar-collapsed" : "") @(isDark ? "dark-mode" : "")">
+    <aside class="sidebar">
         <div class="sidebar-brand">
-            <div class="brand-title">📝 MoodDiary</div>
-        </div>
-
-        <!-- Navigation -->
-        <NavMenu />
-
-        <!-- Auth Section -->
-        <div class="sidebar-auth mt-auto p-3">
-
-            @if (UserService.IsLoggedIn)
-            {
-                <div class="user-greeting mb-2">
-                    Hello, @UserService.CurrentUser!.Name!
-                </div>
-
-                <button class="btn btn-theme w-100 mb-2" @onclick="Logout">
-                    Logout
-                </button>
-            }
-            else
-            {
-                <button class="btn btn-theme w-100 mb-1"
-                        @onclick='() => Nav.NavigateTo("/login")'>
-                    Login
-                </button>
-
-                <button class="btn btn-theme w-100 mb-2"
-                        @onclick='() => Nav.NavigateTo("/register")'>
-                    Register
-                </button>
-            }
-
-            <hr />
-
-            <button class="btn btn-theme toggle-theme-btn w-100"
-                    @onclick="ToggleTheme">
-                Switch to @(isDark ? "Light" : "Dark") Theme
+            <h2 class="brand-title">MoodDiary</h2>
+            <button class="btn-toggle" @onclick="ToggleSidebar">
+                <i class="bi @(isCollapsed ? "bi-text-indent-left" : "bi-text-indent-right")"></i>
             </button>
         </div>
-    </div>
 
-    <!-- Main Content -->
+        <NavMenu />
+
+        <div class="sidebar-footer">
+            <!-- Theme Toggle -->
+            <button class="theme-toggle-btn" @onclick="ToggleTheme" title="Toggle Theme">
+                <i class="bi @(isDark ? "bi-sun-fill" : "bi-moon-stars-fill")"></i>
+                <span class="nav-text">@(isDark ? "Light Mode" : "Dark Mode")</span>
+            </button>
+        </div>
+    </aside>
+
     <main>
-        <article class="content px-4">
-            <div class="app-container">
-                @Body
-            </div>
-        </article>
+        <div class="app-container">
+            @Body
+        </div>
     </main>
 </div>
 
-<style>
-/* ---------------- Base ---------------- */
-.page {
-    display: flex;
-    min-height: 100vh;
-    transition: background 0.3s, color 0.3s;
-}
-
-.sidebar {
-    width: 220px;
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar-brand {
-    padding: 1rem;
-    font-weight: 800;
-    font-size: 1.2rem;
-}
-
-.user-greeting {
-    color: #ffffff;   
-    font-weight: 500;
-}
-
-.light-theme {
-    background-color: #f5f5f5;
-    color: #111;   
-}
-
-.dark-theme .sidebar {
-    background: #0f172a; 
-    color: #e5e7eb;
-     border-right: 1px solid #1f2937
-}
-
-.btn-theme {
-    padding: 0.5rem 0.8rem;
-    font-weight: 500;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    transition: all 0.3s;
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
-.toggle-theme-btn {
-    margin-top: 5px;
-}
-
-/* ---------------- Light Theme ---------------- */
-
-
-.light-theme .sidebar {
-    background-color: #ffffff;
-    color: #111;
-    border-right: 1px solid #ddd;
-}
-
-.light-theme .user-greeting {
-    color: #fffefe;
-}
-
-.light-theme .btn-theme {
-    background-color: #ffffff;
-    color: #111;
-    border: 1px solid #111;
-}
-
-.light-theme .btn-theme:hover {
-    background-color: #111;
-    color: #fff;
-}
-
-/* ---------------- Dark Theme ---------------- */
-.dark-theme {
-    background-color: #0f1820;
-    color: #eee;
-}
-
-.dark-theme .sidebar {
-    background-color: #0f1820;
-    color: #eee;
-}
-
-.dark-theme .btn-theme {
-    background-color: #1c2732;
-    color: #eee;
-    border: 1px solid #eee;
-}
-
-.dark-theme .btn-theme:hover {
-    background-color: #eee;
-    color: #0f1820;
-}
-</style>
-
 @code {
-    private bool isDark = true;
-    private string ThemeClass => isDark ? "dark-theme" : "light-theme";
+    private bool isCollapsed = false;
+    private bool isDark = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var savedTheme = await JS.InvokeAsync<string>(
-            "localStorage.getItem", "moodDiaryTheme");
+        var saved = await JS.InvokeAsync<string>("localStorage.getItem", "theme");
+        isDark = saved == "dark";
+    }
 
-        if (!string.IsNullOrEmpty(savedTheme))
-            isDark = savedTheme == "dark";
+    private void ToggleSidebar()
+    {
+        isCollapsed = !isCollapsed;
     }
 
     private async Task ToggleTheme()
     {
         isDark = !isDark;
-        await JS.InvokeVoidAsync(
-            "localStorage.setItem",
-            "moodDiaryTheme",
-            isDark ? "dark" : "light");
-    }
-
-    private void Logout()
-    {
-        UserService.Logout();
-        Nav.NavigateTo("/login", true);
+        await JS.InvokeVoidAsync("localStorage.setItem", "theme", isDark ? "dark" : "light");
     }
 }

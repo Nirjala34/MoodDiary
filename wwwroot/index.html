@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>JournalApp</title>
     <base href="/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="JournalApp.styles.css" />
@@ -17,28 +24,30 @@
 
     <div id="app">Loading...</div>
 
+    <!-- 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    -->
 
-    <script src="_framework/blazor.webview.js" autostart="false"> </script>
-<script src="js/richTextEditor.js"></script>
+    <script src="_framework/blazor.webview.js"></script>
+    <script src="js/richTextEditor.js"></script>
 
-<script>
-    window.downloadFile = (fileName, contentType, bytes) => {
-        const blob = new Blob([new Uint8Array(bytes)], { type: contentType });
-        const url = URL.createObjectURL(blob);
+    <script>
+        window.downloadFile = (fileName, contentType, bytes) => {
+            const blob = new Blob([new Uint8Array(bytes)], { type: contentType });
+            const url = URL.createObjectURL(blob);
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        a.click();
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            a.click();
 
-        URL.revokeObjectURL(url);
-    };
-</script>
+            URL.revokeObjectURL(url);
+        };
+    </script>
 
 
 </body>

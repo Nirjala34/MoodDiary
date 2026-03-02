@@ -2,180 +2,105 @@
 @using JournalApp.Models
 @inject JournalApp.Services.IJournalStorageService Storage
 @inject NavigationManager Nav
-@inject PinService PinService
 
-
-
-    <div class="dashboard container">
-    <!-- Welcome Section -->
-    <div class="welcome-section d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="welcome-title">🍂 Welcome to MoodDiary!</h1>
-            <p class="welcome-subtitle">
-                Keep a record of your thoughts, moods, and progress every day 📝
-            </p>
-            <p class="welcome-note">
-                🌅 Start your day with intention.  
-                ✨ Reflect each evening.  
-                📝 Watch your mood journey unfold.
-            </p>
-        </div>
-        <div>
-            
-        </div>
+<div class="dashboard-hero">
+    <div class="welcome-section">
+        <h1 class="welcome-title">Welcome back!</h1>
+        <p class="welcome-subtitle">Your journey to mindfulness continues here. ✨</p>
     </div>
 
-    
-
-    <!-- Quick Links / Actions -->
-    <div class="quick-actions row g-3">
+    <div class="quick-actions-grid row g-4 mb-5">
         <div class="col-md-4">
             <div class="action-card" @onclick='() => Nav.NavigateTo("/add-entry")'>
-                ✏️ Add New Entry
+                <i class="bi bi-pencil-square" style="font-size: 2.5rem; color: var(--primary);"></i>
+                <span>New Reflection</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="action-card" @onclick='() => Nav.NavigateTo("/view-entries")'>
-                📖 View Past Entries
+                <i class="bi bi-book" style="font-size: 2.5rem; color: var(--accent-purple);"></i>
+                <span>View Journal</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="action-card" @onclick='() => Nav.NavigateTo("/analytics")'>
-                📊 View Analytics
+                <i class="bi bi-graph-up-arrow" style="font-size: 2.5rem; color: #a855f7;"></i>
+                <span>Mood Insights</span>
             </div>
         </div>
     </div>
- <!-- Getting Started -->
-<div class="row mt-5">
-    <div class="col-12">
-        <div class="getting-started-card">
-            <h4>🚀 Getting Started</h4>
-            <p>
-                Click <strong>"Add New Entry"</strong> to create your first journal entry.
-                Track your moods, add tags, and build a journaling habit!
-            </p>
-        </div>
-    </div>
-</div>
 
-<!-- What You Can Do -->
-<div class="row mt-5">
-    <div class="col-12 mb-4">
-        <h3 class="section-title">What You Can Do</h3>
-        <p class="section-subtitle">
-            Explore the core features designed to help you reflect, track, and grow.
-        </p>
-    </div>
-
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="capability-card">
-            <span class="capability-icon">📓</span>
-            <h5>Personal Reflections</h5>
-            <p>
-                Write daily reflections in a distraction-free space that supports expressive writing.
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="capability-card">
-            <span class="capability-icon">🎭</span>
-            <h5>Emotion Mapping</h5>
-            <p>
-                Record how you feel using a range of emotions to better understand your mood shifts.
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="capability-card">
-            <span class="capability-icon">🧩</span>
-            <h5>Custom Labels</h5>
-            <p>
-                Add labels to entries to organize experiences and revisit them easily later.
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="capability-card">
-            <span class="capability-icon">🗂️</span>
-            <h5>Smart Search</h5>
-            <p>
-                Quickly locate past entries using filters like date, mood, or keywords.
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="capability-card">
-            <span class="capability-icon">📅</span>
-            <h5>Consistency Tracker</h5>
-            <p>
-                Stay motivated by monitoring how regularly you write and reflect.
-            </p>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="capability-card">
-            <span class="capability-icon">📈</span>
-            <h5>Insight Reports</h5>
-            <p>
-                View summaries and visual trends that reveal how your moods evolve over time.
-            </p>
-        </div>
-    </div>
-</div>
-<!-- ABOUT MOODDIARY -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="about-card-home">
-            <h4 class="about-title">
-                <span class="about-icon">ℹ️</span>
-                About MoodDiary
-            </h4> 
-
-            <div class="about-section">
-                <div class="about-label">Version</div>
-                <div>9.0 – Coursework</div>
+    <!-- Getting Started Section -->
+    <div class="promo-card card mb-5">
+        <div class="card-body d-flex align-items-center gap-4 p-4">
+            <div class="promo-icon" style="font-size: 3rem;">🚀</div>
+            <div>
+                <h4 class="card-title m-0 mb-1">Getting Started</h4>
+                <p class="text-secondary m-0">Click "New Reflection" to capture your thoughts for today. Start building your habit!</p>
             </div>
+            <button class="btn btn-primary ms-auto" @onclick='() => Nav.NavigateTo("/add-entry")'>
+                Start Writing
+            </button>
+        </div>
+    </div>
 
-            <div class="about-section">
-                <div class="about-label">What is MoodDiary?</div>
-                <p>
-                    MoodDiary is a personal journaling application designed to help you
-                    reflect on your daily experiences, track emotional patterns,
-                    and build a consistent self-reflection habit.
-                </p>
+    <!-- Features Section -->
+    <h3 class="section-header mb-4">Core Capabilities</h3>
+    <div class="row g-4 mb-5">
+        @foreach (var feature in Features)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100">
+                    <div class="feature-icon mb-3">@feature.Icon</div>
+                    <h5 class="feature-title">@feature.Title</h5>
+                    <p class="feature-desc text-secondary small">@feature.Description</p>
+                </div>
             </div>
+        }
+    </div>
 
-            <div class="about-section">
-                <div class="about-label">Key Features</div>
-                <ul class="about-list">
-                    <li>Write one journal entry per day with mood tracking</li>
-                    <li>Choose from 15 moods grouped into Positive, Neutral, and Negative</li>
-                    <li>Use built-in tags or create your own custom tags</li>
-                    <li>Search and filter entries by date, mood, or keywords</li>
-                    <li>Track writing streaks to build consistency</li>
-                    <li>View insights and analytics about your mood trends</li>
-                    <li>Protect your journal using PIN security</li>
-                    <li>Switch between Light and Dark themes</li>
-                </ul>
-            </div>
-
-            <div class="about-section">
-                <div class="about-label">Storage</div>
-                <div>
-                    All data is stored locally using SQLite to ensure privacy
-                    and offline access.
+    <!-- About Section -->
+    <div class="about-card card mb-5">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle text-primary"></i>
+            <h5 class="m-0">About MoodDiary</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase small fw-bold text-secondary mb-2">The Mission</h6>
+                    <p class="small text-secondary">MoodDiary is your personal companion for self-reflection. We use local SQLite storage to ensure your private thoughts stay on your device, providing a secure and offline-ready environment for your mental health journey.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase small fw-bold text-secondary mb-2">App Specs</h6>
+                    <div class="d-flex justify-content-between small text-secondary py-1 border-bottom border-opacity-10">
+                        <span>Version</span>
+                        <span class="fw-bold">9.0 Professional</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-secondary py-1 border-bottom border-opacity-10">
+                        <span>Framework</span>
+                        <span class="fw-bold">.NET 9 MAUI Blazor</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-secondary py-1">
+                        <span>Storage</span>
+                        <span class="fw-bold">Secure Local SQLite</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+@code {
+    private record FeatureInfo(string Icon, string Title, string Description);
 
-</div>
- 
-
+    private List<FeatureInfo> Features = new()
+    {
+        new FeatureInfo("📓", "Personal Reflections", "Write daily reflections in a distraction-free space."),
+        new FeatureInfo("🎭", "Emotion Mapping", "Record how you feel to understand your mood shifts."),
+        new FeatureInfo("🧩", "Custom Labels", "Add labels to entries to organize experiences."),
+        new FeatureInfo("🗂️", "Smart Search", "Locate past entries using filters and keywords."),
+        new FeatureInfo("📅", "Consistency Tracker", "Monitor how regularly you write and reflect."),
+        new FeatureInfo("📈", "Insight Reports", "Visual trends reveal how your moods evolve.")
+    };
+}

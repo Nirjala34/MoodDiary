@@ -206,6 +206,14 @@ namespace JournalApp.Services
             return Task.CompletedTask;
         }
 
+        public Task SaveTagsAsync(List<string> tags)
+        {
+            var s = ReadSettings();
+            s.Tags = tags;
+            WriteSettings(s);
+            return Task.CompletedTask;
+        }
+
         public Task<List<string>> GetCustomMoodsAsync()
         {
             var s = ReadSettings();
@@ -224,6 +232,14 @@ namespace JournalApp.Services
         {
             var s = ReadSettings();
             s.Moods.RemoveAll(m => m == mood);
+            WriteSettings(s);
+            return Task.CompletedTask;
+        }
+
+        public Task SaveMoodsAsync(List<string> moods)
+        {
+            var s = ReadSettings();
+            s.Moods = moods;
             WriteSettings(s);
             return Task.CompletedTask;
         }
